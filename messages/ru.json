@@ -1,0 +1,162 @@
+{
+  "common": {
+    "search": "Поиск",
+    "find": "Найти",
+    "github": "github",
+    "lastUpdate": "Последнее обновление: {date}",
+    "progress": "{percent}% завершено",
+    "overallProgress": "Общий прогресс: {percent}%",
+    "continue": "Продолжить обучение",
+    "startLearning": "Начать обучение",
+    "completed": "Завершено",
+    "inProgress": "В процессе",
+    "notStarted": "Не начато",
+    "locked": "Заблокировано"
+  },
+
+  "navigation": {
+    "home": "Главная",
+    "modules": "Модули",
+    "dashboard": "Панель",
+    "profile": "Профиль",
+    "admin": "Админ"
+  },
+
+  "homepage": {
+    "title": "Go Backend Engineer Roadmap 2025",
+    "subtitle": "Изучайте навыки, необходимые для собеседований в топовые компании",
+    "description": "Путь от Frontend разработчика к Senior Backend Go Engineer в топовых компаниях",
+    "searchPlaceholder": "Поиск по роадмапу",
+    "contents": "Содержание",
+    "contentsDescription": "Модули организованы от базовых концепций Go до продвинутых системных паттернов. Затем идут дополнительные циклы статей на различные темы.",
+    "readyToStart": "Готовы начать свой путь?",
+    "readyToStartDescription": "Присоединяйтесь к тысячам разработчиков, которые уже развивают свои навыки",
+    "completedModules": "Вы завершили {completed} из {total} модулей. Продолжайте изучение!"
+  },
+
+  "modules": {
+    "foundation": "🟢 FOUNDATION (Недели 1-20)",
+    "intermediate": "🟡 INTERMEDIATE (Недели 21-40)",
+    "advanced": "🔴 ADVANCED (Недели 41-50)",
+    "expert": "🟣 FAANG READY (Недели 51-60)",
+
+    "module1": {
+      "title": "Go Language Mastery",
+      "description": "Здесь вы можете изучить Go, начиная с основ, включающий в себя много тонкостей и фишек Go runtime и GMP модели.",
+      "duration": "(6-8 недель)",
+      "sections": {
+        "fundamentals": "Go Fundamentals",
+        "concurrency": "Concurrency Basics",
+        "advanced": "Go Advanced & Runtime"
+      },
+      "topics": {
+        "t1_1": "Go philosophy: simplicity, readability, performance",
+        "t1_2": "Types, variables, constants, zero values",
+        "t1_3": "Functions: parameters, returns, variadic, closures",
+        "t1_4": "Control structures: if, for, switch, defer",
+        "t1_5": "Structs, methods, embedded types",
+        "t1_6": "Pointers: когда использовать, pass by value vs reference",
+        "t1_7": "Goroutines: creation, lifecycle, vs OS threads",
+        "t1_8": "Channels: unbuffered vs buffered, select statement",
+        "t1_9": "Channel patterns: pipeline, fan-out/fan-in",
+        "t1_10": "sync package: Mutex, RWMutex, WaitGroup",
+        "t1_11": "Context: cancellation, timeouts, values",
+        "t1_12": "Race conditions: detection, prevention",
+        "t1_13": "Go runtime architecture: scheduler, netpoller",
+        "t1_14": "GMP model: Goroutines, OS threads, Processors",
+        "t1_15": "Memory management: stack vs heap, escape analysis",
+        "t1_16": "Garbage Collector: tri-color marking, tuning",
+        "t1_17": "Reflection: use cases, performance impact",
+        "t1_18": "Unsafe operations: when и why to avoid"
+      }
+    },
+
+    "module2": {
+      "title": "Network Programming Mastery",
+      "description": "Глубокое изучение сетевого программирования: протоколы, HTTP, WebSockets, производительность сетевых приложений.",
+      "duration": "(5-6 недель)",
+      "sections": {
+        "fundamentals": "Network Fundamentals",
+        "go": "Go Network Programming"
+      },
+      "topics": {
+        "t2_1": "OSI model: layers, responsibilities, real examples",
+        "t2_2": "TCP/IP stack: IP, TCP, UDP basics",
+        "t2_3": "DNS: resolution process, types of records",
+        "t2_4": "HTTP basics: methods, status codes, headers",
+        "t2_5": "HTTPS/TLS: certificates, encryption basics",
+        "t2_6": "Sockets programming: client/server basics",
+        "t2_7": "net package: TCP/UDP clients and servers",
+        "t2_8": "net/http: server, client, middleware patterns",
+        "t2_9": "Connection pooling: keep-alive, timeouts",
+        "t2_10": "Context в network operations",
+        "t2_11": "Error handling в network code",
+        "t2_12": "Network performance optimization"
+      }
+    },
+
+    "module7": {
+      "title": "DevOps & Deployment",
+      "description": "Контейнеризация, Kubernetes, CI/CD pipeline, deployment стратегии для production приложений.",
+      "duration": "(5-6 недель)",
+      "sections": {
+        "containerization": "Containerization Basics"
+      },
+      "topics": {
+        "t7_1": "Container concepts: vs VMs, benefits",
+        "t7_2": "Docker basics: images, containers, Dockerfile",
+        "t7_3": "Multi-stage builds",
+        "t7_4": "Docker Compose: multi-container apps"
+      }
+    },
+
+    "module15": {
+      "title": "FAANG Interview Mastery",
+      "description": "Финальная подготовка к собеседованиям: coding, system design, behavioral questions.",
+      "duration": "(4-6 недель)",
+      "sections": {
+        "systemDesign": "System Design Interview"
+      },
+      "topics": {
+        "t15_1": "System design approach",
+        "t15_2": "Design URL shortener",
+        "t15_3": "Design chat system",
+        "t15_4": "Design social media feed"
+      }
+    }
+  },
+
+  "tabs": {
+    "module1": "МОДУЛЬ 1",
+    "module1Sub": "Go Fundamentals",
+    "module2": "МОДУЛЬ 2",
+    "module2Sub": "Network Programming",
+    "module3": "МОДУЛЬ 3",
+    "module3Sub": "Database Systems"
+  },
+
+  "badges": {
+    "faangFocus": "FAANG Focus",
+    "foundation": "🟢 FOUNDATION",
+    "intermediate": "🟡 INTERMEDIATE",
+    "advanced": "🔴 ADVANCED",
+    "expert": "🟣 FAANG READY"
+  },
+
+  "auth": {
+    "signIn": "Войти",
+    "signUp": " Зарегистрироваться",
+    "signOut": "Выйти",
+    "name": "Имя",
+    "email": "Электронная почта",
+    "password": " Пароль",
+    "continueWithGitHub": "Продолжить с GitHub",
+    "continueWithGoogle": "Продолжить с Google",
+    "noAccount": "Нет аккаунта? Зарегистрируйтесь",
+    "hasAccount": "Уже есть аккаунт? Войдите",
+    "pleaseWait": "Пожалуйста подождите...",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "signingOut": "Выход из системы..."
+  }
+}
