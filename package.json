@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "yarn lint --fix . --max-warnings 100",
+    "lint:fix": "yarn lint --fix",
     "seed": "ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/lib/database/seed.ts"
   },
   "dependencies": {
@@ -58,9 +58,9 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "@types/zxcvbn": "^4.4.5",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
