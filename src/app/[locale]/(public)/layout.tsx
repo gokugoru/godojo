@@ -9,6 +9,7 @@ import QueryProvider from '@/components/providers/query-provider';
 import '../../globals.css';
 import { ReactNode } from 'react';
 import Header from '@/components/header';
+import { Analytics } from '@vercel/analytics/next';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -53,12 +54,12 @@ const RootLayout = async ({ children, params }: RootLayoutProps) => {
 						<NextIntlClientProvider>
 							{/* Header на всех страницах */}
 							<Header />
-
 							{/* Основной контент */}
 							<main className='min-h-screen bg-white'>{children}</main>
 						</NextIntlClientProvider>
 					</QueryProvider>
 				</SessionProvider>
+				<Analytics />
 			</body>
 		</html>
 	);
