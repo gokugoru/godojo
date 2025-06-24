@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { USER_ROLES } from '@/lib/constants/config';
 import { cn } from '@/lib/utils';
+import { UserRole } from '@prisma/client';
 
 interface ManagementNavigationProps {
 	userRole: string;
@@ -43,8 +43,8 @@ export const ManagementNavigation = ({
 	const pathname = usePathname();
 	const t = useTranslations('management');
 
-	const isAdmin = userRole === USER_ROLES.ADMIN;
-	const isModerator = userRole === USER_ROLES.MODERATOR;
+	const isAdmin = userRole === UserRole.ADMIN;
+	const isModerator = userRole === UserRole.MODERATOR;
 
 	// Навигационные элементы
 	const navItems: NavItem[] = [

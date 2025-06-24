@@ -4,7 +4,7 @@ import type { UserRole } from '@prisma/client';
 // Module augmentation for NextAuth.js v5
 declare module 'next-auth' {
 	/**
-	 * The shape of the user object returned in the OAuth providers' `profile` callback,
+	 * The shape of the user object returned in the OAuth providers' `dashboard` callback,
 	 * or the second parameter of the `session` callback, when using a database.
 	 */
 	interface User {

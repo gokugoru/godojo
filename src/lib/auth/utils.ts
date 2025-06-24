@@ -1,3 +1,5 @@
+// @/lib/auth/utils.ts
+
 /**
  * Role-based authorization utilities
  * Provides type-safe methods for checking user permissions

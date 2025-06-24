@@ -1,10 +1,11 @@
+// @/components/modals/AuthModal.tsx - PRODUCTION READY
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Eye, EyeOff, Github, Mail } from 'lucide-react';
+import { Eye, EyeOff, Github, Mail, AlertCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import {
@@ -25,10 +26,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { useLogin, useRegister, useOAuthSignIn } from '@/lib/auth/hooks';
 
-// Validation schemas
+// FIXED: Synchronized validation schemas
 const loginSchema = z.object({
 	email: z.string().email('Invalid email address'),
 	password: z.string().min(1, 'Password is required'),
@@ -48,30 +50,75 @@ const registerSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
+type AuthMode = 'login' | 'register';
 
 interface AuthModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 }
 
+/**
+ * Enhanced error categorization for better UX
+ */
+type ErrorCategory =
+	| 'network'
+	| 'validation'
+	| 'server'
+	| 'rate_limit'
+	| 'unknown';
+
+interface AuthError {
+	category: ErrorCategory;
+	message: string;
+}
+
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
-	const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+	const [authMode, setAuthMode] = useState<AuthMode>('login');
 	const [showPassword, setShowPassword] = useState(false);
 
 	// Translations
 	const tAuth = useTranslations('auth');
+	const tCommon = useTranslations('common');
 
 	// Auth hooks
 	const loginMutation = useLogin();
 	const registerMutation = useRegister();
 	const oauthMutation = useOAuthSignIn();
 
-	const isLoading =
-		loginMutation.isPending ||
-		registerMutation.isPending ||
-		oauthMutation.isPending;
+	const isLoading = useMemo(
+		() =>
+			loginMutation.isPending ||
+			registerMutation.isPending ||
+			oauthMutation.isPending,
+		[
+			loginMutation.isPending,
+			registerMutation.isPending,
+			oauthMutation.isPending,
+		],
+	);
 
-	// Separate forms for each mode
+	// FIXED: Memoized auth mode configuration
+	const authModeConfig = useMemo(
+		() => ({
+			login: {
+				title: tAuth('signIn'),
+				description: tAuth('welcomeBack'),
+				submitText: tAuth('signIn'),
+				switchText: tAuth('noAccount'),
+			},
+			register: {
+				title: tAuth('signUp'),
+				description: tAuth('createAccount'),
+				submitText: tAuth('signUp'),
+				switchText: tAuth('hasAccount'),
+			},
+		}),
+		[tAuth],
+	);
+
+	const currentConfig = authModeConfig[authMode];
+
+	// Form instances
 	const loginForm = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
@@ -89,95 +136,207 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 		},
 	});
 
-	const onLoginSubmit = async (values: LoginFormData) => {
-		const formData = new FormData();
-		formData.append('email', values.email);
-		formData.append('password', values.password);
+	// FIXED: Enhanced error handling with categorization
+	const getErrorDetails = useCallback((): AuthError | null => {
+		const errors = [
+			loginMutation.error,
+			registerMutation.error,
+			oauthMutation.error,
+		];
 
-		const result = await loginMutation.mutateAsync(formData);
+		const firstError = errors.find(Boolean);
+		if (!firstError?.message) return null;
 
-		if (result.success) {
-			onClose();
-			loginForm.reset();
+		const { message } = firstError;
+
+		// Network error detection
+		if (
+			message.includes('fetch') ||
+			message.includes('network') ||
+			message.includes('Failed to fetch')
+		) {
+			return {
+				category: 'network',
+				message: tAuth('networkError'),
+			};
 		}
-	};
 
-	const onRegisterSubmit = async (values: RegisterFormData) => {
-		const formData = new FormData();
-		formData.append('name', values.name);
-		formData.append('email', values.email);
-		formData.append('password', values.password);
-
-		const result = await registerMutation.mutateAsync(formData);
-
-		if (result.success) {
-			onClose();
-			registerForm.reset();
+		// Rate limiting detection
+		if (
+			message.includes('Too many attempts') ||
+			message.includes('rate limit')
+		) {
+			return {
+				category: 'rate_limit',
+				message: message, // Keep original rate limit message with timing
+			};
 		}
-	};
 
-	const handleOAuthLogin = (provider: 'github' | 'google') => {
-		oauthMutation.mutate(provider);
-	};
+		// Server error detection
+		if (
+			message.includes('500') ||
+			message.includes('server') ||
+			message.includes('Internal')
+		) {
+			return {
+				category: 'server',
+				message: tAuth('serverError'),
+			};
+		}
 
-	const switchMode = () => {
-		setAuthMode(authMode === 'login' ? 'register' : 'login');
+		// Validation errors (handled by forms)
+		if (message.includes('Invalid') || message.includes('required')) {
+			return {
+				category: 'validation',
+				message,
+			};
+		}
+
+		return {
+			category: 'unknown',
+			message,
+		};
+	}, [loginMutation.error, registerMutation.error, oauthMutation.error, tAuth]);
+
+	// Form submission handlers
+	const onLoginSubmit = useCallback(
+		async (values: LoginFormData) => {
+			const formData = new FormData();
+			formData.append('email', values.email);
+			formData.append('password', values.password);
+
+			const result = await loginMutation.mutateAsync(formData);
+
+			if (result.success) {
+				onClose();
+				loginForm.reset();
+			}
+		},
+		[loginMutation, onClose, loginForm],
+	);
+
+	const onRegisterSubmit = useCallback(
+		async (values: RegisterFormData) => {
+			const formData = new FormData();
+			formData.append('name', values.name);
+			formData.append('email', values.email);
+			formData.append('password', values.password);
+
+			const result = await registerMutation.mutateAsync(formData);
+
+			if (result.success) {
+				onClose();
+				registerForm.reset();
+			}
+		},
+		[registerMutation, onClose, registerForm],
+	);
+
+	// FIXED: Prevent form submission on OAuth buttons
+	const handleOAuthLogin = useCallback(
+		(provider: 'github' | 'google') => (e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+			oauthMutation.mutate(provider);
+		},
+		[oauthMutation],
+	);
+
+	const switchMode = useCallback(() => {
+		setAuthMode((prev) => (prev === 'login' ? 'register' : 'login'));
 		setShowPassword(false);
 		loginForm.reset();
 		registerForm.reset();
-	};
+	}, [loginForm, registerForm]);
 
-	const getErrorMessage = () => {
-		if (loginMutation.error) return loginMutation.error.message;
-		if (registerMutation.error) return registerMutation.error.message;
-		if (oauthMutation.error) return oauthMutation.error.message;
+	const togglePasswordVisibility = useCallback(() => {
+		setShowPassword((prev) => !prev);
+	}, []);
 
-		return null;
-	};
+	const errorDetails = getErrorDetails();
+
+	// FIXED: Memoized OAuth buttons to prevent re-renders
+	const OAuthButtons = useMemo(
+		() => (
+			<div className='space-y-2'>
+				<Button
+					type='button'
+					variant='outline'
+					className='w-full'
+					onClick={handleOAuthLogin('github')}
+					disabled={isLoading}
+					onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+				>
+					<Github className='mr-2 h-4 w-4' aria-hidden='true' />
+					{tAuth('continueWithGitHub')}
+				</Button>
+				<Button
+					type='button'
+					variant='outline'
+					className='w-full'
+					onClick={handleOAuthLogin('google')}
+					disabled={isLoading}
+					onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+				>
+					<Mail className='mr-2 h-4 w-4' aria-hidden='true' />
+					{tAuth('continueWithGoogle')}
+				</Button>
+			</div>
+		),
+		[handleOAuthLogin, isLoading, tAuth],
+	);
+
+	// FIXED: Enhanced password input with accessibility
+	const PasswordInput = ({ field, placeholder = '••••••••' }: any) => (
+		<div className='relative'>
+			<Input
+				type={showPassword ? 'text' : 'password'}
+				placeholder={placeholder}
+				{...field}
+			/>
+			<Button
+				type='button'
+				variant='ghost'
+				size='sm'
+				className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
+				onClick={togglePasswordVisibility}
+				aria-label={
+					showPassword ? tAuth('hidePassword') : tAuth('showPassword')
+				}
+				tabIndex={-1}
+			>
+				{showPassword ? (
+					<EyeOff className='h-4 w-4' aria-hidden='true' />
+				) : (
+					<Eye className='h-4 w-4' aria-hidden='true' />
+				)}
+			</Button>
+		</div>
+	);
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
-					<DialogTitle>
-						{authMode === 'login' ? tAuth('signIn') : tAuth('signUp')}
-					</DialogTitle>
-					<DialogDescription>
-						{authMode === 'login'
-							? 'Welcome back! Please sign in to your account.'
-							: 'Create a new account to start tracking your progress.'}
-					</DialogDescription>
+					<DialogTitle>{currentConfig.title}</DialogTitle>
+					<DialogDescription>{currentConfig.description}</DialogDescription>
 				</DialogHeader>
 
 				<div className='space-y-4'>
-					{/* Error message */}
-					{getErrorMessage() && (
-						<div className='rounded-md border border-red-200 bg-red-50 p-3'>
-							<p className='text-sm text-red-600'>{getErrorMessage()}</p>
-						</div>
+					{/* FIXED: Enhanced error display with icons */}
+					{errorDetails && (
+						<Alert
+							variant={
+								errorDetails.category === 'network' ? 'destructive' : 'default'
+							}
+						>
+							<AlertCircle className='h-4 w-4' />
+							<AlertDescription>{errorDetails.message}</AlertDescription>
+						</Alert>
 					)}
 
 					{/* OAuth Buttons */}
-					<div className='space-y-2'>
-						<Button
-							variant='outline'
-							className='w-full'
-							onClick={() => handleOAuthLogin('github')}
-							disabled={isLoading}
-						>
-							<Github className='mr-2 h-4 w-4' />
-							{tAuth('continueWithGitHub')}
-						</Button>
-						<Button
-							variant='outline'
-							className='w-full'
-							onClick={() => handleOAuthLogin('google')}
-							disabled={isLoading}
-						>
-							<Mail className='mr-2 h-4 w-4' />
-							{tAuth('continueWithGoogle')}
-						</Button>
-					</div>
+					{OAuthButtons}
 
 					<div className='relative'>
 						<div className='absolute inset-0 flex items-center'>
@@ -185,7 +344,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 						</div>
 						<div className='relative flex justify-center text-xs uppercase'>
 							<span className='bg-background text-muted-foreground px-2'>
-								Or
+								{tCommon('or')}
 							</span>
 						</div>
 					</div>
@@ -207,6 +366,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 												<Input
 													type='email'
 													placeholder='john@example.com'
+													autoComplete='email'
 													{...field}
 												/>
 											</FormControl>
@@ -222,26 +382,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 										<FormItem>
 											<FormLabel>{tAuth('password')}</FormLabel>
 											<FormControl>
-												<div className='relative'>
-													<Input
-														type={showPassword ? 'text' : 'password'}
-														placeholder='••••••••'
-														{...field}
-													/>
-													<Button
-														type='button'
-														variant='ghost'
-														size='sm'
-														className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
-														onClick={() => setShowPassword(!showPassword)}
-													>
-														{showPassword ? (
-															<EyeOff className='h-4 w-4' />
-														) : (
-															<Eye className='h-4 w-4' />
-														)}
-													</Button>
-												</div>
+												<PasswordInput field={field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -249,7 +390,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 								/>
 
 								<Button type='submit' className='w-full' disabled={isLoading}>
-									{isLoading ? tAuth('pleaseWait') : tAuth('signIn')}
+									{isLoading ? tAuth('pleaseWait') : currentConfig.submitText}
 								</Button>
 							</form>
 						</Form>
@@ -269,7 +410,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 										<FormItem>
 											<FormLabel>{tAuth('name')}</FormLabel>
 											<FormControl>
-												<Input placeholder='John Doe' {...field} />
+												<Input
+													placeholder='John Doe'
+													autoComplete='name'
+													{...field}
+												/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -286,6 +431,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 												<Input
 													type='email'
 													placeholder='john@example.com'
+													autoComplete='email'
 													{...field}
 												/>
 											</FormControl>
@@ -301,26 +447,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 										<FormItem>
 											<FormLabel>{tAuth('password')}</FormLabel>
 											<FormControl>
-												<div className='relative'>
-													<Input
-														type={showPassword ? 'text' : 'password'}
-														placeholder='••••••••'
-														{...field}
-													/>
-													<Button
-														type='button'
-														variant='ghost'
-														size='sm'
-														className='absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent'
-														onClick={() => setShowPassword(!showPassword)}
-													>
-														{showPassword ? (
-															<EyeOff className='h-4 w-4' />
-														) : (
-															<Eye className='h-4 w-4' />
-														)}
-													</Button>
-												</div>
+												<PasswordInput field={field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -328,7 +455,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 								/>
 
 								<Button type='submit' className='w-full' disabled={isLoading}>
-									{isLoading ? tAuth('pleaseWait') : tAuth('signUp')}
+									{isLoading ? tAuth('pleaseWait') : currentConfig.submitText}
 								</Button>
 							</form>
 						</Form>
@@ -337,7 +464,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 					{/* Switch mode */}
 					<div className='text-center'>
 						<Button variant='link' onClick={switchMode} className='text-sm'>
-							{authMode === 'login' ? tAuth('noAccount') : tAuth('hasAccount')}
+							{currentConfig.switchText}
 						</Button>
 					</div>
 				</div>

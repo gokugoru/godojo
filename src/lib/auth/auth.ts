@@ -8,14 +8,64 @@ import { z } from 'zod';
 import { db as prisma } from '@/lib/prisma';
 import type { UserRole } from '@prisma/client';
 
-// Схема для валидации credentials
-const credentialsSchema = z.object({
+const CREDENTIALS_SCHEMA = z.object({
 	email: z.string().email('Invalid email address'),
 	password: z.string().min(1, 'Password is required'),
 });
 
+const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
+const extractUsernameFromEmail = (email: string): string => {
+	return email.split('@')[0] || 'user';
+};
+
+const validateCredentialsUser = async (email: string, password: string) => {
+	const user = await prisma.user.findUnique({
+		where: { email },
+		include: {
+			accounts: {
+				where: { provider: 'credentials' },
+				select: { refresh_token: true },
+			},
+		},
+	});
+
+	if (!user || user.accounts.length === 0) {
+		return null;
+	}
+
+	const account = user.accounts.at(0);
+
+	if (!account?.refresh_token) {
+		return null;
+	}
+
+	const isValidPassword = await bcrypt.compare(password, account.refresh_token);
+
+	if (!isValidPassword) {
+		return null;
+	}
+
+	return user;
+};
+
+const generateUniqueUsername = async (
+	baseUsername: string,
+): Promise<string> => {
+	let username = baseUsername;
+	let counter = 1;
+
+	while (await prisma.user.findUnique({ where: { username } })) {
+		username = `${baseUsername}${counter}`;
+		counter++;
+	}
+
+	return username;
+};
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
 	adapter: PrismaAdapter(prisma),
+	secret: process.env.NEXTAUTH_SECRET,
 
 	providers: [
 		GitHub({
@@ -42,7 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 					name: profile.name,
 					email: profile.email,
 					image: profile.picture,
-					username: profile.email?.split('@')[0] || '',
+					username: extractUsernameFromEmail(profile.email || ''),
 					role: 'USER' as UserRole,
 				};
 			},
@@ -55,34 +105,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 			},
 			async authorize(credentials) {
 				try {
-					const { email, password } = credentialsSchema.parse(credentials);
+					const { email, password } = CREDENTIALS_SCHEMA.parse(credentials);
+					const user = await validateCredentialsUser(email, password);
 
-					// Найти пользователя с credentials аккаунтом
-					const user = await prisma.user.findUnique({
-						where: { email },
-						include: {
-							accounts: {
-								where: { provider: 'credentials' },
-							},
-						},
-					});
-
-					if (!user || user.accounts.length === 0) {
+					if (!user) {
 						return null;
 					}
 
-					// Проверить пароль (хранится в refresh_token)
-					const account = user.accounts[0];
-					const isValidPassword = await bcrypt.compare(
-						password,
-						account.refresh_token || '',
-					);
-
-					if (!isValidPassword) {
-						return null;
-					}
-
-					// Обновить последний вход
 					await prisma.user.update({
 						where: { id: user.id },
 						data: { lastLogin: new Date() },
@@ -93,11 +122,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 						email: user.email,
 						name: user.name,
 						image: user.image,
-						username: user.username || email.split('@')[0],
+						username: user.username || extractUsernameFromEmail(user.email),
 						role: user.role,
 					};
 				} catch (error) {
-					console.error('Auth error:', error);
+					console.error('Authorization error:', error);
 
 					return null;
 				}
@@ -107,46 +136,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 	session: {
 		strategy: 'jwt',
-		maxAge: 30 * 24 * 60 * 60, // 30 дней
+		maxAge: SESSION_MAX_AGE_SECONDS,
 	},
 
 	callbacks: {
-		async jwt({ token, user, account }) {
-			// При первом входе добавляем данные пользователя в токен
-			if (user) {
+		async jwt({ token, user }) {
+			if (user?.id) {
 				token.role = user.role;
 				token.username = user.username || '';
 			}
 
-			// Для OAuth провайдеров генерируем username если его нет
-			if (account && account.provider !== 'credentials' && !token.username) {
+			if (!token.username && token.email) {
 				const email = token.email as string;
-				const baseUsername = email.split('@')[0];
+				const baseUsername = extractUsernameFromEmail(email);
+				const uniqueUsername = await generateUniqueUsername(baseUsername);
 
-				// Проверяем уникальность username
-				let username = baseUsername;
-				let counter = 1;
-
-				while (await prisma.user.findUnique({ where: { username } })) {
-					username = `${baseUsername}${counter}`;
-					counter++;
-				}
-
-				// Обновляем пользователя с новым username
 				await prisma.user.update({
 					where: { id: token.sub },
-					data: { username },
+					data: { username: uniqueUsername },
 				});
 
-				token.username = username;
+				token.username = uniqueUsername;
 			}
 
 			return token;
 		},
 
 		async session({ session, token }) {
-			// Добавляем дополнительные поля в сессию из JWT токена
-			if (token.sub && session?.user && session?.user?.role) {
+			if (token.sub && session?.user) {
 				session.user.id = token.sub;
 				session.user.role = token.role as UserRole;
 				session.user.username = token.username as string;
@@ -156,7 +173,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 		},
 
 		async signIn() {
-			// Разрешаем вход
 			return true;
 		},
 	},
@@ -168,7 +184,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 	events: {
 		async signIn({ user, account }) {
-			console.log(`✅ User ${user.email} signed in with ${account?.provider}`);
+			console.log(`User ${user.email} signed in with ${account?.provider}`);
 		},
 	},
 

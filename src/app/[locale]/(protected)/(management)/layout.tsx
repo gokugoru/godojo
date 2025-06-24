@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import { USER_ROLES } from '@/lib/constants/config';
 import { ManagementNavigation } from '@/components/management-navigation';
+import { UserRole } from '@prisma/client';
 
 interface ManagementLayoutProps {
 	children: ReactNode;
@@ -23,7 +23,7 @@ const Layout = async ({
 
 	const userRole = session.user.role;
 	const hasManagementAccess =
-		userRole === USER_ROLES.ADMIN || userRole === USER_ROLES.MODERATOR;
+		userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
 
 	if (!hasManagementAccess) {
 		redirect(`/${locale}/dashboard`);

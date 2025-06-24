@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
+import { debounce } from 'lodash';
 import {
 	registerUser,
 	loginUser,
@@ -10,45 +12,40 @@ import {
 	signOutUser,
 	getCurrentUser,
 } from '@/actions/auth';
+import { REDIRECTS } from '@/lib/constants/config';
 import type { UserRole } from '@prisma/client';
 
-// Query keys for consistent caching
 export const authKeys = {
 	all: ['auth'] as const,
 	sessions: () => [...authKeys.all, 'session'] as const,
 	user: (id?: string) => [...authKeys.all, 'user', id] as const,
 } as const;
 
-/**
- * Primary auth hook using NextAuth session
- */
-export function useAuth() {
+export const useAuth = () => {
 	const { data: session, status } = useSession();
 
-	return {
-		user: session?.user || null,
-		isLoading: status === 'loading',
-		isAuthenticated: !!session?.user,
-		session,
-		status,
-	};
-}
+	return useMemo(
+		() => ({
+			user: session?.user || null,
+			isLoading: status === 'loading',
+			isAuthenticated: !!session?.user,
+			session,
+			status,
+		}),
+		[session, status],
+	);
+};
 
-/**
- * Enhanced user data with React Query caching
- * Combines NextAuth session with additional user data from database
- */
-export function useCurrentUser() {
+export const useCurrentUser = () => {
 	const { user, isAuthenticated, isLoading: sessionLoading } = useAuth();
 
 	return useQuery({
 		queryKey: authKeys.user(user?.id),
 		queryFn: getCurrentUser,
 		enabled: isAuthenticated && !!user?.id && !sessionLoading,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		retry: 1,
-		// Use session data as initial data
 		initialData: user
 			? {
 					id: user.id,
@@ -60,115 +57,117 @@ export function useCurrentUser() {
 				}
 			: undefined,
 	});
-}
+};
 
-/**
- * Registration mutation with optimistic updates
- */
-export function useRegister() {
+export const useRegister = () => {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 
 	return useMutation({
 		mutationFn: registerUser,
 		onSuccess: (result) => {
-			if (result.success && result.user) {
-				// Update user cache optimistically
-				queryClient.setQueryData(authKeys.user(result.user.id), result.user);
+			if (result.success) {
+				if (result.user) {
+					queryClient.setQueryData(authKeys.user(result.user.id), result.user);
+				}
 
-				// Invalidate session to trigger NextAuth refresh
 				queryClient.invalidateQueries({ queryKey: ['session'] });
 
-				// Navigate to dashboard
-				router.push('/dashboard');
-				router.refresh();
+				if (result.redirectTo) {
+					router.push(result.redirectTo);
+					router.refresh();
+				}
 			}
 		},
 		onError: (error) => {
 			console.error('Registration error:', error);
 		},
 	});
-}
+};
 
-/**
- * Login mutation
- */
-export function useLogin() {
+export const useLogin = () => {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 
-	return useMutation({
+	const mutation = useMutation({
 		mutationFn: loginUser,
 		onSuccess: (result) => {
 			if (result.success) {
-				// Invalidate all auth-related queries
 				queryClient.invalidateQueries({ queryKey: authKeys.all });
 				queryClient.invalidateQueries({ queryKey: ['session'] });
 
-				// Navigate to dashboard
-				router.push('/dashboard');
-				router.refresh();
+				if (result.redirectTo) {
+					router.push(result.redirectTo);
+					router.refresh();
+				}
 			}
 		},
 		onError: (error) => {
 			console.error('Login error:', error);
 		},
 	});
-}
 
-/**
- * OAuth sign in mutation
- */
-export function useOAuthSignIn() {
+	const debouncedMutate = useCallback(
+		debounce(mutation.mutate, 1000, { leading: true, trailing: false }),
+		[mutation.mutate],
+	);
+
+	return {
+		...mutation,
+		mutate: debouncedMutate,
+		mutateAsync: mutation.mutateAsync,
+	};
+};
+
+export const useOAuthSignIn = () => {
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	return useMutation({
 		mutationFn: (provider: 'github' | 'google') => signInWithProvider(provider),
-		onSuccess: () => {
-			// Invalidate auth queries to refresh data
-			queryClient.invalidateQueries({ queryKey: authKeys.all });
-			queryClient.invalidateQueries({ queryKey: ['session'] });
+		onSuccess: (result) => {
+			if (result.success) {
+				queryClient.invalidateQueries({ queryKey: authKeys.all });
+				queryClient.invalidateQueries({ queryKey: ['session'] });
+
+				if (result.redirectTo) {
+					router.push(result.redirectTo);
+					router.refresh();
+				}
+			}
 		},
 		onError: (error) => {
 			console.error('OAuth sign in error:', error);
 		},
 	});
-}
+};
 
-/**
- * Sign out mutation
- */
-export function useSignOut() {
+export const useSignOut = () => {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 
 	return useMutation({
 		mutationFn: signOutUser,
-		onSuccess: () => {
-			// Clear all cached data
+		onSuccess: (result) => {
 			queryClient.clear();
 
-			// Navigate to home
-			router.push('/');
-			router.refresh();
+			if (result.success && result.redirectTo) {
+				router.push(result.redirectTo);
+				router.refresh();
+			}
 		},
 		onError: (error) => {
 			console.error('Sign out error:', error);
 		},
 	});
-}
+};
 
-/**
- * Auth guard hook for protected pages
- * Automatically redirects to login if not authenticated
- */
-export function useAuthGuard() {
+export const useAuthGuard = () => {
 	const { user, isLoading, isAuthenticated } = useAuth();
 	const router = useRouter();
 
-	// Redirect to login if not authenticated and not loading
 	if (!isLoading && !isAuthenticated) {
-		router.push('/auth/login');
+		router.push(REDIRECTS.unauthorized);
 
 		return { user: null, isLoading: false, isAuthenticated: false };
 	}
@@ -178,33 +177,30 @@ export function useAuthGuard() {
 		isLoading,
 		isAuthenticated,
 	};
-}
+};
 
-/**
- * Role-based authorization guard with proper typing
- * Now works correctly with NextAuth module augmentation
- */
-export function useRoleGuard(requiredRole: UserRole = 'ADMIN') {
+export const useRoleGuard = (requiredRole: UserRole = 'ADMIN') => {
 	const { user, isLoading, isAuthenticated } = useAuth();
 	const router = useRouter();
 
-	// TypeScript now correctly sees user.role as UserRole union type
-	const hasPermission = (() => {
+	const hasPermission = useMemo(() => {
 		if (!user) return false;
 
-		// Now this comparison works without TS2367 error!
 		if (user.role === 'ADMIN') return true;
 
 		if (requiredRole === 'MODERATOR') {
 			return user.role === 'MODERATOR' || (user.role as string) === 'ADMIN';
 		}
 
-		return user.role === requiredRole;
-	})();
+		if (requiredRole === 'USER') {
+			return ['USER', 'MODERATOR', 'ADMIN'].includes(user.role);
+		}
 
-	// Redirect if no permission
+		return (user.role as string) === requiredRole;
+	}, [user, requiredRole]);
+
 	if (!isLoading && isAuthenticated && !hasPermission) {
-		router.push('/dashboard');
+		router.push(REDIRECTS.adminOnly);
 
 		return { user, isLoading: false, hasPermission: false };
 	}
@@ -214,31 +210,26 @@ export function useRoleGuard(requiredRole: UserRole = 'ADMIN') {
 		isLoading,
 		hasPermission: isAuthenticated && hasPermission,
 	};
-}
+};
 
-/**
- * Authentication status hook
- * Useful for conditional rendering
- */
-export function useAuthStatus() {
+export const useAuthStatus = () => {
 	const { status } = useSession();
 
-	return {
-		isLoading: status === 'loading',
-		isAuthenticated: status === 'authenticated',
-		isUnauthenticated: status === 'unauthenticated',
-	};
-}
+	return useMemo(
+		() => ({
+			isLoading: status === 'loading',
+			isAuthenticated: status === 'authenticated',
+			isUnauthenticated: status === 'unauthenticated',
+		}),
+		[status],
+	);
+};
 
-/**
- * Prefetch auth data hook
- * Useful for performance optimization
- */
-export function usePrefetchAuth() {
+export const usePrefetchAuth = () => {
 	const queryClient = useQueryClient();
 	const { user, isAuthenticated } = useAuth();
 
-	const prefetchUser = () => {
+	const prefetchUser = useCallback(() => {
 		if (user?.id && isAuthenticated) {
 			queryClient.prefetchQuery({
 				queryKey: authKeys.user(user.id),
@@ -246,10 +237,42 @@ export function usePrefetchAuth() {
 				staleTime: 5 * 60 * 1000,
 			});
 		}
-	};
+	}, [queryClient, user?.id, isAuthenticated]);
 
 	return {
 		prefetchUser,
 		isAuthenticated,
 	};
-}
+};
+
+export const useAuthState = () => {
+	const auth = useAuth();
+	const status = useAuthStatus();
+	const { prefetchUser } = usePrefetchAuth();
+
+	return useMemo(
+		() => ({
+			...auth,
+			...status,
+			prefetchUser,
+			isAdmin: auth.user?.role === 'ADMIN',
+			isModerator: ['ADMIN', 'MODERATOR'].includes(auth.user?.role || ''),
+			canModerate: ['ADMIN', 'MODERATOR'].includes(auth.user?.role || ''),
+			hasRole: (role: UserRole) => {
+				if (!auth.user) return false;
+				if (role === 'USER') return true;
+				if (role === 'MODERATOR')
+					return ['ADMIN', 'MODERATOR'].includes(auth.user.role);
+				if (role === 'ADMIN') return auth.user.role === 'ADMIN';
+
+				return false;
+			},
+		}),
+		[auth, status, prefetchUser],
+	);
+};
+
+export type AuthUser = NonNullable<ReturnType<typeof useAuth>['user']>;
+export type AuthStatus = ReturnType<typeof useAuthStatus>;
+export type AuthState = ReturnType<typeof useAuthState>;
+export type { UserRole } from '@prisma/client';
