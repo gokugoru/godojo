@@ -7,7 +7,6 @@ import { setRequestLocale } from 'next-intl/server';
 import '../../globals.css';
 import { ReactNode } from 'react';
 import Header from '@/components/header';
-import { Analytics } from '@vercel/analytics/next';
 import { ClientProviders } from '@/components/client-providers';
 
 const geistSans = Geist({
@@ -56,7 +55,6 @@ const RootLayout = async ({ children, params }: RootLayoutProps) => {
 					{/* Основной контент */}
 					<main className='min-h-screen bg-white'>{children}</main>
 				</ClientProviders>
-				<Analytics />
 			</body>
 		</html>
 	);
