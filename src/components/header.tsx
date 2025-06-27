@@ -117,7 +117,7 @@ const Logo = memo(() => (
 	</Link>
 ));
 
-export const Header = memo(() => {
+const Header = memo(() => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const tAuth = useTranslations('auth');
 	const { user, isAuthenticated, isLoading } = useAuth();
@@ -179,6 +179,8 @@ export const Header = memo(() => {
 		</>
 	);
 });
+
+export default Header;
 
 Header.displayName = 'Header';
 HeaderSkeleton.displayName = 'HeaderSkeleton';
