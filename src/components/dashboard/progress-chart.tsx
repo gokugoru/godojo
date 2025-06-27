@@ -16,6 +16,7 @@ import {
 import { TrendingUp } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { nanoid } from 'nanoid';
 
 interface ProgressChartProps {
 	userId: string;
@@ -46,8 +47,8 @@ const CustomTooltip = memo(({ active, payload, label }: any) => {
 	return (
 		<div className='bg-background border-border rounded-lg border p-3 shadow-lg'>
 			<p className='mb-2 text-sm font-medium'>{label}</p>
-			{payload.map((entry: any, index: number) => (
-				<div key={index} className='flex items-center gap-2 text-xs'>
+			{payload.map((entry: any) => (
+				<div key={nanoid()} className='flex items-center gap-2 text-xs'>
 					<div
 						className='h-3 w-3 rounded-full'
 						style={{ backgroundColor: entry.color }}

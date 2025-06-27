@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { nanoid } from 'nanoid';
 
 export const OverviewSkeleton = () => (
 	<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-		{Array.from({ length: 4 }).map((_, i) => (
-			<Card key={i}>
+		{Array.from({ length: 4 }).map(() => (
+			<Card key={nanoid()}>
 				<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
 					<div className='bg-muted h-4 w-24 animate-pulse rounded' />
 					<div className='bg-muted h-4 w-4 animate-pulse rounded' />

@@ -15,7 +15,7 @@ import {
 	i18nSEOConfigs,
 } from '@/lib/seo/i18n-metadata';
 import { generateStructuredData } from '@/lib/seo/structured-data';
-import { Header } from '@/components/header';
+import Header from '@/components/header';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
