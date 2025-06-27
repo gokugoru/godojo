@@ -7,7 +7,6 @@ import { routing } from '@/i18n/routing';
 import { setRequestLocale } from 'next-intl/server';
 import '../globals.css';
 import { ReactNode } from 'react';
-import Header from '@/components/header';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ClientProviders } from '@/components/client-providers';
@@ -16,6 +15,7 @@ import {
 	i18nSEOConfigs,
 } from '@/lib/seo/i18n-metadata';
 import { generateStructuredData } from '@/lib/seo/structured-data';
+import { Header } from '@/components/header';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
