@@ -13,9 +13,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { nanoid } from 'nanoid';
 
 interface DashboardPageProps {
-	params: {
-		locale: string;
-	};
+	params: Promise<{ locale: string }>;
 }
 
 // Loading components for better UX

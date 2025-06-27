@@ -1,4 +1,3 @@
-// src/app/[locale]/(public)/page.tsx
 import { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import ChaptersHomeWrapper from '@/components/chapters/chapters-home-wrapper';
@@ -9,27 +8,28 @@ import {
 import { generateStructuredData } from '@/lib/seo/structured-data';
 import { Difficulty } from '@prisma/client';
 
-interface HomePageProps {
-	params: Promise<{ locale: string }>; // ✅ Changed to Promise
+type HomePageProps = {
+	params: Promise<{ locale: string }>;
 	searchParams?: Promise<{
 		tab?: string;
 		category?: string;
 		difficulty?: Difficulty;
 		search?: string;
 		page?: string;
-	}>; // ✅ Also Promise for consistency
-}
+	}>;
+};
 
 export async function generateMetadata({
 	params,
 }: Pick<HomePageProps, 'params'>): Promise<Metadata> {
-	const { locale } = await params; // ✅ Now awaiting params
+	const { locale } = await params;
 
 	return await generateI18nSEOMetadata(i18nSEOConfigs.home, locale);
 }
 
 const HomePage = async ({ params, searchParams }: HomePageProps) => {
-	const { locale } = await params; // ✅ Now awaiting params
+	const { locale } = await params;
+	const resolvedSearchParams = searchParams ? await searchParams : {};
 	setRequestLocale(locale);
 
 	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
@@ -67,9 +67,9 @@ const HomePage = async ({ params, searchParams }: HomePageProps) => {
 				}}
 			/>
 
-			<ChaptersHomeWrapper 
-				params={params} 
-				searchParams={searchParams} 
+			<ChaptersHomeWrapper
+				locale={locale}
+				searchParams={resolvedSearchParams}
 			/>
 
 			<div className='sr-only'>

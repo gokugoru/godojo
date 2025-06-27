@@ -75,6 +75,10 @@ const PublicRootLayout = async ({ children, params }: PublicLayoutProps) => {
 		generateStructuredData({ type: 'WebSite' }),
 		generateStructuredData({ type: 'Organization' }),
 	];
+	console.log('Public vars:', {
+		url: process.env.DATABASE_URL,
+		// другие NEXT_PUBLIC_ переменные
+	});
 
 	return (
 		<html lang={locale} dir='ltr' suppressHydrationWarning>
@@ -149,6 +153,7 @@ const PublicRootLayout = async ({ children, params }: PublicLayoutProps) => {
 
 				<link rel='prefetch' href='/chapters' />
 				<link rel='prefetch' href='/topic' />
+				<title></title>
 			</head>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}

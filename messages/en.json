@@ -47,6 +47,36 @@
     "locked": "Locked"
   },
 
+  "seo": {
+    "home": {
+      "title": "Go Backend Engineer Roadmap 2025 | Master Go Programming",
+      "description": "Complete roadmap from Frontend to Senior Backend Go Engineer. Learn Go programming, system design, microservices architecture for FAANG interviews.",
+      "keywords": "Go programming, Go language, backend development, FAANG interviews, system design, microservices, Go tutorial, programming course"
+    },
+    "modules": {
+      "title": "Go Programming Modules | Comprehensive Learning Path",
+      "description": "Master Go programming with structured modules covering fundamentals, advanced concepts, and real-world applications for backend development.",
+      "keywords": "Go modules, Go programming course, backend development, Go tutorial, programming education, Go learning path"
+    },
+    "topic": {
+      "title": "Go Programming Topic | In-Depth Learning",
+      "description": "Deep dive into specific Go programming topics with hands-on examples, best practices, and real-world applications.",
+      "keywords": "Go programming topic, Go tutorial, backend development, Go best practices, programming examples"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Your personal learning dashboard"
+    },
+    "auth": {
+      "title": "Sign In",
+      "description": "Sign in to your account"
+    },
+    "admin": {
+      "title": "Admin Panel",
+      "description": "Administrative dashboard"
+    }
+  },
+
   "navigation": {
     "home": "Home",
     "modules": "Modules",

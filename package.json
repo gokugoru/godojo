@@ -9,7 +9,11 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "yarn lint --fix",
-    "seed": "ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/lib/database/seed.ts"
+    "seed": "ts-node --project tsconfig.seed.json -r tsconfig-paths/register src/lib/database/seed.ts",
+    "db:generate": "prisma generate --no-engine",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

@@ -1,4 +1,3 @@
-// src/components/chapters/chapters-home-wrapper.tsx
 import { Suspense } from 'react';
 import ChaptersHome from './chapters-home';
 import { Difficulty } from '@prisma/client';
@@ -13,17 +12,17 @@ interface SearchParams {
 }
 
 interface ChaptersHomeWrapperProps {
-	params: { locale: string };
+	locale: string;
 	searchParams?: SearchParams;
 }
 
 const ChaptersHomeWrapper = ({
-	params,
+	locale,
 	searchParams,
 }: ChaptersHomeWrapperProps) => {
 	return (
 		<Suspense fallback={<ChaptersSkeleton />}>
-			<ChaptersHome params={params} searchParams={searchParams} />
+			<ChaptersHome locale={locale} searchParams={searchParams} />
 		</Suspense>
 	);
 };

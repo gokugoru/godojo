@@ -12,15 +12,15 @@ interface SearchParams {
 }
 
 interface ChaptersHomeProps {
-	params: { locale: string };
+	locale: string;
 	searchParams?: SearchParams;
 }
 
-type ChapterWithRelations = Prisma.ModuleGetPayload<{
+type ChapterWithRelations = Prisma.ChapterGetPayload<{
 	include: {
 		tab: true;
 		category: true;
-		moduleTags: {
+		chapterTags: {
 			include: {
 				tag: true;
 			};
@@ -39,7 +39,7 @@ type TabWithCount = Prisma.TabGetPayload<{
 	include: {
 		_count: {
 			select: {
-				modules: {
+				chapters: {
 					where: { isPublished: true };
 				};
 			};
@@ -48,18 +48,18 @@ type TabWithCount = Prisma.TabGetPayload<{
 }>;
 
 export default async function ChaptersHome({
-	params,
+	locale,
 	searchParams = {},
 }: ChaptersHomeProps) {
 	const t = useTranslations('chapters');
-	const { locale } = params;
+
 	const { tab, category, difficulty, search, page = '1' } = searchParams;
 
 	const currentPage = Math.max(1, parseInt(page, 10) || 1);
 	const pageSize = 24;
 	const skip = (currentPage - 1) * pageSize;
 
-	const whereCondition: Prisma.ModuleWhereInput = {
+	const whereCondition: Prisma.ChapterWhereInput = {
 		isPublished: true,
 	};
 
@@ -102,17 +102,17 @@ export default async function ChaptersHome({
 					mode: 'insensitive',
 				},
 			},
-		] as Prisma.ModuleWhereInput['OR'];
+		] as Prisma.ChapterWhereInput['OR'];
 	}
 
 	try {
 		const [chapters, tabs, totalCount] = await Promise.all([
-			db.module.findMany({
+			db.chapter.findMany({
 				where: whereCondition,
 				include: {
 					tab: true,
 					category: true,
-					moduleTags: {
+					chapterTags: {
 						include: {
 							tag: true,
 						},
@@ -135,7 +135,7 @@ export default async function ChaptersHome({
 				include: {
 					_count: {
 						select: {
-							modules: {
+							chapters: {
 								where: { isPublished: true },
 							},
 						},
@@ -144,7 +144,7 @@ export default async function ChaptersHome({
 				orderBy: { sortOrder: 'asc' },
 			}) as Promise<TabWithCount[]>,
 
-			db.module.count({
+			db.chapter.count({
 				where: whereCondition,
 			}),
 		]);
@@ -220,7 +220,7 @@ export default async function ChaptersHome({
 									}`}
 								>
 									{locale === 'ru' ? tabItem.titleRu : tabItem.titleEn} (
-									{tabItem._count.modules})
+									{tabItem._count.chapters})
 								</a>
 							))}
 						</nav>
@@ -422,16 +422,46 @@ const Pagination = ({
 }) => {
 	const buildPageUrl = (page: number) => {
 		const params = new URLSearchParams();
-		if (searchParams.tab) params.set('tab', searchParams.tab);
-		if (searchParams.category) params.set('category', searchParams.category);
-		if (searchParams.difficulty)
-			params.set('difficulty', searchParams.difficulty);
-		if (searchParams.search) params.set('search', searchParams.search);
+		const { tab, category, difficulty, search } = searchParams;
+		if (tab) params.set('tab', tab);
+		if (category) params.set('category', category);
+		if (difficulty) params.set('difficulty', difficulty);
+		if (search) params.set('search', search);
 		if (page > 1) params.set('page', page.toString());
 
 		const queryString = params.toString();
 
 		return `/${locale}${queryString ? `?${queryString}` : ''}`;
+	};
+
+	const getPageNumbers = () => {
+		const delta = 2;
+		const range = [];
+		const rangeWithDots = [];
+
+		for (
+			let i = Math.max(2, currentPage - delta);
+			i <= Math.min(totalPages - 1, currentPage + delta);
+			i++
+		) {
+			range.push(i);
+		}
+
+		if (currentPage - delta > 2) {
+			rangeWithDots.push(1, '...');
+		} else {
+			rangeWithDots.push(1);
+		}
+
+		rangeWithDots.push(...range);
+
+		if (currentPage + delta < totalPages - 1) {
+			rangeWithDots.push('...', totalPages);
+		} else if (totalPages > 1) {
+			rangeWithDots.push(totalPages);
+		}
+
+		return rangeWithDots;
 	};
 
 	return (
@@ -445,13 +475,22 @@ const Pagination = ({
 				</a>
 			)}
 
-			{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-				const page = i + 1;
+			{getPageNumbers().map((page, index) => {
+				if (page === '...') {
+					return (
+						<span
+							key={`dots-${index}`}
+							className='px-3 py-2 text-sm text-gray-400'
+						>
+							...
+						</span>
+					);
+				}
 
 				return (
 					<a
 						key={page}
-						href={buildPageUrl(page)}
+						href={buildPageUrl(page as number)}
 						className={`rounded-md px-3 py-2 text-sm ${
 							page === currentPage
 								? 'bg-blue-600 text-white'
