@@ -1,9 +1,10 @@
 // src/components/modals/auth-modal.tsx
 'use client';
 
-import { memo, useCallback, useMemo, useState, useTransition } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, Github, Mail } from 'lucide-react';
+import { toast } from 'sonner';
 
 import {
 	Dialog,
@@ -16,6 +17,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useRegister, useLogin, useOAuthSignIn } from '@/lib/auth/hooks';
+import { useAuthValidation } from '@/lib/auth/validation';
+import type {
+	LoginCredentials,
+	RegisterCredentials,
+	OAuthProvider,
+} from '@/lib/auth/types';
 
 interface AuthModalProps {
 	isOpen: boolean;
@@ -23,6 +31,14 @@ interface AuthModalProps {
 }
 
 type AuthMode = 'signin' | 'signup';
+
+interface AuthFormData {
+	email: string;
+	password: string;
+	confirmPassword: string;
+	name: string;
+	username: string;
+}
 
 const SocialButton = memo(
 	({
@@ -36,12 +52,15 @@ const SocialButton = memo(
 	}) => {
 		const t = useTranslations('auth');
 
-		const iconMap = {
-			github: Github,
-			google: Mail,
-		};
+		const config = useMemo(
+			() => ({
+				github: { icon: Github, key: 'Github' },
+				google: { icon: Mail, key: 'Google' },
+			}),
+			[],
+		);
 
-		const Icon = iconMap[provider];
+		const { icon: Icon, key } = config[provider];
 
 		return (
 			<Button
@@ -51,9 +70,7 @@ const SocialButton = memo(
 				className='w-full'
 			>
 				<Icon className='mr-2 h-4 w-4' />
-				{t(
-					`continueWith${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
-				)}
+				{t(`continueWith${key}`)}
 			</Button>
 		);
 	},
@@ -115,15 +132,31 @@ const PasswordField = memo(
 export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
 	const t = useTranslations('auth');
 	const [mode, setMode] = useState<AuthMode>('signin');
-	const [isPending, startTransition] = useTransition();
-	const [formData, setFormData] = useState({
+	const [formData, setFormData] = useState<AuthFormData>({
 		email: '',
 		password: '',
 		confirmPassword: '',
 		name: '',
+		username: '',
 	});
 
+	const registerMutation = useRegister();
+	const loginMutation = useLogin();
+	const oauthMutation = useOAuthSignIn();
+	const { validateLoginForm, validateRegisterForm } = useAuthValidation();
+
 	const isSignUp = useMemo(() => mode === 'signup', [mode]);
+	const isPending = useMemo(
+		() =>
+			registerMutation.isPending ||
+			loginMutation.isPending ||
+			oauthMutation.isPending,
+		[
+			registerMutation.isPending,
+			loginMutation.isPending,
+			oauthMutation.isPending,
+		],
+	);
 
 	const toggleMode = useCallback(() => {
 		setMode((prev) => (prev === 'signin' ? 'signup' : 'signin'));
@@ -132,30 +165,105 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
 			password: '',
 			confirmPassword: '',
 			name: '',
+			username: '',
 		});
 	}, []);
 
 	const updateFormData = useCallback(
-		(field: keyof typeof formData, value: string) => {
+		(field: keyof AuthFormData, value: string) => {
 			setFormData((prev) => ({ ...prev, [field]: value }));
 		},
 		[],
 	);
 
-	const handleSocialAuth = useCallback((provider: 'github' | 'google') => {
-		startTransition(() => {
-			console.log(`Authenticating with ${provider}`);
-		});
-	}, []);
+	const handleSocialAuth = useCallback(
+		(provider: OAuthProvider) => {
+			oauthMutation.mutate(provider, {
+				onSuccess: (result) => {
+					if (result.success) {
+						toast.success(t('authSuccess'));
+						onClose();
+					} else {
+						toast.error(result.error || t('authError'));
+					}
+				},
+				onError: () => {
+					toast.error(t('authError'));
+				},
+			});
+		},
+		[oauthMutation, t, onClose],
+	);
+
+	const validateForm = useCallback((): string | null => {
+		return isSignUp
+			? validateRegisterForm(formData)
+			: validateLoginForm(formData);
+	}, [formData, isSignUp, validateRegisterForm, validateLoginForm]);
 
 	const handleSubmit = useCallback(
 		(e: React.FormEvent) => {
 			e.preventDefault();
-			startTransition(() => {
-				console.log(`${mode}:`, formData);
-			});
+
+			const validationError = validateForm();
+
+			if (validationError) {
+				toast.error(validationError);
+
+				return;
+			}
+
+			if (isSignUp) {
+				const registerData: RegisterCredentials = {
+					email: formData.email,
+					password: formData.password,
+					username: formData.username || formData.email.split('@')[0],
+					name: formData.name,
+				};
+
+				registerMutation.mutate(registerData, {
+					onSuccess: (result) => {
+						if (result.success) {
+							toast.success(t('registrationSuccess'));
+							onClose();
+						} else {
+							toast.error(result.error || t('registrationError'));
+						}
+					},
+					onError: () => {
+						toast.error(t('registrationError'));
+					},
+				});
+			} else {
+				const loginData: LoginCredentials = {
+					email: formData.email,
+					password: formData.password,
+				};
+
+				loginMutation.mutate(loginData, {
+					onSuccess: (result) => {
+						if (result.success) {
+							toast.success(t('loginSuccess'));
+							onClose();
+						} else {
+							toast.error(result.error || t('loginError'));
+						}
+					},
+					onError: () => {
+						toast.error(t('loginError'));
+					},
+				});
+			}
 		},
-		[mode, formData],
+		[
+			validateForm,
+			isSignUp,
+			registerMutation,
+			loginMutation,
+			formData,
+			t,
+			onClose,
+		],
 	);
 
 	const socialButtons = useMemo(
@@ -180,17 +288,30 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
 		() => (
 			<div className='space-y-4'>
 				{isSignUp && (
-					<div className='space-y-2'>
-						<Label htmlFor='name'>{t('name')}</Label>
-						<Input
-							id='name'
-							type='text'
-							value={formData.name}
-							onChange={(e) => updateFormData('name', e.target.value)}
-							placeholder={t('enterName')}
-							required
-						/>
-					</div>
+					<>
+						<div className='space-y-2'>
+							<Label htmlFor='name'>{t('name')}</Label>
+							<Input
+								id='name'
+								type='text'
+								value={formData.name}
+								onChange={(e) => updateFormData('name', e.target.value)}
+								placeholder={t('enterName')}
+								required
+							/>
+						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='username'>{t('username')}</Label>
+							<Input
+								id='username'
+								type='text'
+								value={formData.username || ''}
+								onChange={(e) => updateFormData('username', e.target.value)}
+								placeholder={t('enterUsername')}
+							/>
+						</div>
+					</>
 				)}
 
 				<div className='space-y-2'>

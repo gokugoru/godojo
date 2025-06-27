@@ -1,3 +1,4 @@
+// @/lib/constants/config.ts
 const isServerSide = process.env.CHECK_SERVER === 'true';
 
 export const APP_CONFIG = {

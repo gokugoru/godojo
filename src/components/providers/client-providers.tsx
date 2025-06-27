@@ -5,6 +5,7 @@ import { SessionProvider } from 'next-auth/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { ThemeProvider } from 'next-themes';
 import QueryProvider from '@/components/providers/query-provider';
+import { ToastProvider } from '@/components/providers/toast-provider';
 
 interface ClientProvidersProps {
 	children: ReactNode;
@@ -19,8 +20,8 @@ export const ClientProviders = ({
 }: ClientProvidersProps) => {
 	return (
 		<SessionProvider
-			refetchInterval={0}
-			refetchOnWindowFocus={false}
+			refetchInterval={5 * 60}
+			refetchOnWindowFocus={true}
 			refetchWhenOffline={false}
 		>
 			<NextIntlClientProvider
@@ -37,6 +38,7 @@ export const ClientProviders = ({
 						disableTransitionOnChange={false}
 					>
 						{children}
+						<ToastProvider />
 					</ThemeProvider>
 				</QueryProvider>
 			</NextIntlClientProvider>

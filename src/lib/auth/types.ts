@@ -1,6 +1,9 @@
+// src/lib/auth/types.ts
 import type { UserRole as PrismaUserRole } from '@prisma/client';
 
 export type UserRole = PrismaUserRole;
+export type OAuthProvider = 'github' | 'google';
+export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 export interface SessionUser {
 	id: string;
@@ -24,6 +27,53 @@ export interface AuthResult {
 	};
 }
 
+export interface LoginCredentials {
+	email: string;
+	password: string;
+}
+
+export interface RegisterCredentials extends LoginCredentials {
+	username: string;
+	name?: string;
+}
+
+export interface AuthFormData {
+	email: string;
+	password: string;
+	name: string;
+	confirmPassword: string;
+	username?: string;
+}
+
+export interface LoginData {
+	email: string;
+	password: string;
+}
+
+export interface RegisterData {
+	email: string;
+	password: string;
+	name: string;
+	confirmPassword: string;
+	username?: string;
+}
+
+export interface AuthError {
+	message: string;
+	code?: string;
+	field?: string;
+}
+
+export interface OAuthResult extends AuthResult {
+	provider?: OAuthProvider;
+}
+
+export interface SignOutResult {
+	success: boolean;
+	redirectTo?: string;
+	error?: string;
+}
+
 export const hasRole = (
 	user: { role: string } | null | undefined,
 	requiredRole: UserRole,
@@ -42,15 +92,26 @@ export const isModerator = (
 ): user is { role: 'MODERATOR' | 'ADMIN' } =>
 	user?.role === 'MODERATOR' || user?.role === 'ADMIN';
 
-export interface LoginCredentials {
-	email: string;
-	password: string;
-}
+export const canModerate = (
+	user: { role: string } | null | undefined,
+): boolean => isModerator(user);
 
-export interface RegisterCredentials extends LoginCredentials {
-	username: string;
-	name?: string;
-}
+export const getUserRoleHierarchy = (): Record<UserRole, number> => ({
+	USER: 1,
+	INSTRUCTOR: 2,
+	MODERATOR: 3,
+	ADMIN: 4,
+});
 
-export type OAuthProvider = 'github' | 'google';
-export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
+export const hasMinimumRole = (
+	user: { role: string } | null | undefined,
+	minimumRole: UserRole,
+): boolean => {
+	if (!user) return false;
+
+	const hierarchy = getUserRoleHierarchy();
+	const userLevel = hierarchy[user.role as UserRole] || 0;
+	const requiredLevel = hierarchy[minimumRole];
+
+	return userLevel >= requiredLevel;
+};

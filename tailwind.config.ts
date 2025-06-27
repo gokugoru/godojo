@@ -7,8 +7,6 @@ const config: Config = {
 		'./src/app/**/*.{js,ts,jsx,tsx,mdx}',
 		'./components/**/*.{ts,tsx}',
 	],
-	// В Tailwind v4 больше НЕ НУЖНО theme.extend
-	// Все кастомизации идут через CSS variables в globals.css
 };
 
 export default config;

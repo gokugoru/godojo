@@ -7,7 +7,7 @@ import { setRequestLocale } from 'next-intl/server';
 import '../../globals.css';
 import { ReactNode } from 'react';
 import Header from '@/components/header';
-import { ClientProviders } from '@/components/client-providers';
+import { ClientProviders } from '@/components/providers/client-providers';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',

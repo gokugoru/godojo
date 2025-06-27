@@ -1,3 +1,4 @@
+// src/lib/auth/hooks.ts
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -5,15 +6,18 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import { debounce } from 'lodash';
+import { toast } from 'sonner';
 import {
-	registerUser,
-	loginUser,
 	signInWithProvider,
 	signOutUser,
 	getCurrentUser,
 } from '@/actions/auth';
-import { REDIRECTS } from '@/lib/constants/config';
-import type { UserRole } from '@prisma/client';
+import {
+	registerUserWithCredentials,
+	loginUserWithCredentials,
+} from './actions';
+import { hasRole, isAdmin, isModerator } from './types';
+import type { UserRole, OAuthProvider } from './types';
 
 export const authKeys = {
 	all: ['auth'] as const,
@@ -64,7 +68,7 @@ export const useRegister = () => {
 	const router = useRouter();
 
 	return useMutation({
-		mutationFn: registerUser,
+		mutationFn: registerUserWithCredentials,
 		onSuccess: (result) => {
 			if (result.success) {
 				if (result.user) {
@@ -79,8 +83,12 @@ export const useRegister = () => {
 				}
 			}
 		},
-		onError: (error) => {
+		onError: (error: any) => {
 			console.error('Registration error:', error);
+			toast.error(
+				error?.message ||
+					'Произошла ошибка при регистрации. Попробуйте еще раз.',
+			);
 		},
 	});
 };
@@ -90,7 +98,7 @@ export const useLogin = () => {
 	const router = useRouter();
 
 	const mutation = useMutation({
-		mutationFn: loginUser,
+		mutationFn: loginUserWithCredentials,
 		onSuccess: (result) => {
 			if (result.success) {
 				queryClient.invalidateQueries({ queryKey: authKeys.all });
@@ -102,8 +110,12 @@ export const useLogin = () => {
 				}
 			}
 		},
-		onError: (error) => {
+		onError: (error: any) => {
 			console.error('Login error:', error);
+			const errorMessage =
+				error?.message ||
+				'Неверный email или пароль. Проверьте данные и попробуйте снова.';
+			toast.error(errorMessage);
 		},
 	});
 
@@ -124,7 +136,7 @@ export const useOAuthSignIn = () => {
 	const router = useRouter();
 
 	return useMutation({
-		mutationFn: (provider: 'github' | 'google') => signInWithProvider(provider),
+		mutationFn: (provider: OAuthProvider) => signInWithProvider(provider),
 		onSuccess: (result) => {
 			if (result.success) {
 				queryClient.invalidateQueries({ queryKey: authKeys.all });
@@ -136,8 +148,12 @@ export const useOAuthSignIn = () => {
 				}
 			}
 		},
-		onError: (error) => {
+		onError: (error: any) => {
 			console.error('OAuth sign in error:', error);
+			const errorMessage =
+				error?.message ||
+				'Не удалось авторизоваться. Проверьте доступ к интернету и попробуйте снова.';
+			toast.error(errorMessage);
 		},
 	});
 };
@@ -150,66 +166,18 @@ export const useSignOut = () => {
 		mutationFn: signOutUser,
 		onSuccess: (result) => {
 			queryClient.clear();
+			toast.success('Вы успешно вышли из системы');
 
 			if (result.success && result.redirectTo) {
 				router.push(result.redirectTo);
 				router.refresh();
 			}
 		},
-		onError: (error) => {
+		onError: (error: any) => {
 			console.error('Sign out error:', error);
+			toast.error('Произошла ошибка при выходе из системы');
 		},
 	});
-};
-
-export const useAuthGuard = () => {
-	const { user, isLoading, isAuthenticated } = useAuth();
-	const router = useRouter();
-
-	if (!isLoading && !isAuthenticated) {
-		router.push(REDIRECTS.unauthorized);
-
-		return { user: null, isLoading: false, isAuthenticated: false };
-	}
-
-	return {
-		user,
-		isLoading,
-		isAuthenticated,
-	};
-};
-
-export const useRoleGuard = (requiredRole: UserRole = 'ADMIN') => {
-	const { user, isLoading, isAuthenticated } = useAuth();
-	const router = useRouter();
-
-	const hasPermission = useMemo(() => {
-		if (!user) return false;
-
-		if (user.role === 'ADMIN') return true;
-
-		if (requiredRole === 'MODERATOR') {
-			return user.role === 'MODERATOR' || (user.role as string) === 'ADMIN';
-		}
-
-		if (requiredRole === 'USER') {
-			return ['USER', 'MODERATOR', 'ADMIN'].includes(user.role);
-		}
-
-		return (user.role as string) === requiredRole;
-	}, [user, requiredRole]);
-
-	if (!isLoading && isAuthenticated && !hasPermission) {
-		router.push(REDIRECTS.adminOnly);
-
-		return { user, isLoading: false, hasPermission: false };
-	}
-
-	return {
-		user,
-		isLoading,
-		hasPermission: isAuthenticated && hasPermission,
-	};
 };
 
 export const useAuthStatus = () => {
@@ -255,17 +223,13 @@ export const useAuthState = () => {
 			...auth,
 			...status,
 			prefetchUser,
-			isAdmin: auth.user?.role === 'ADMIN',
-			isModerator: ['ADMIN', 'MODERATOR'].includes(auth.user?.role || ''),
-			canModerate: ['ADMIN', 'MODERATOR'].includes(auth.user?.role || ''),
+			isAdmin: auth.user ? isAdmin(auth.user) : false,
+			isModerator: auth.user ? isModerator(auth.user) : false,
+			canModerate: auth.user ? isModerator(auth.user) : false,
 			hasRole: (role: UserRole) => {
 				if (!auth.user) return false;
-				if (role === 'USER') return true;
-				if (role === 'MODERATOR')
-					return ['ADMIN', 'MODERATOR'].includes(auth.user.role);
-				if (role === 'ADMIN') return auth.user.role === 'ADMIN';
 
-				return false;
+				return hasRole(auth.user, role);
 			},
 		}),
 		[auth, status, prefetchUser],
@@ -275,4 +239,3 @@ export const useAuthState = () => {
 export type AuthUser = NonNullable<ReturnType<typeof useAuth>['user']>;
 export type AuthStatus = ReturnType<typeof useAuthStatus>;
 export type AuthState = ReturnType<typeof useAuthState>;
-export type { UserRole } from '@prisma/client';

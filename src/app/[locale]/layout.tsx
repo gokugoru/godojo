@@ -9,7 +9,7 @@ import '../globals.css';
 import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { ClientProviders } from '@/components/client-providers';
+import { ClientProviders } from '@/components/providers/client-providers';
 import {
 	generateI18nSEOMetadata,
 	i18nSEOConfigs,
