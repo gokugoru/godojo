@@ -5,7 +5,7 @@ import { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin('./src/i18n/requests.ts');
 
 const nextConfig: NextConfig = {
-	// Добавляем оптимизации производительности
+	compress: true,
 	experimental: {
 		optimizePackageImports: [
 			'lucide-react',

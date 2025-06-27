@@ -10,6 +10,8 @@ import {
 } from '@/lib/middleware/routes';
 
 const LOCALE_REGEX = /^\/[a-z]{2}/;
+const STATIC_ASSETS_REGEX =
+	/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/;
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -19,25 +21,22 @@ const matchesRoutes = (
 ): boolean => {
 	const pathWithoutLocale = pathname.replace(LOCALE_REGEX, '') || '/';
 
-	return routes.some((route) => {
-		if (route === '/') return pathWithoutLocale === '/';
-
-		return pathWithoutLocale.startsWith(route);
-	});
+	return routes.some((route) =>
+		route === '/'
+			? pathWithoutLocale === '/'
+			: pathWithoutLocale.startsWith(route),
+	);
 };
 
 const isProtectedRoute = (pathname: string): boolean =>
 	matchesRoutes(pathname, PROTECTED_ROUTES);
-
 const isAdminRoute = (pathname: string): boolean =>
 	matchesRoutes(pathname, ADMIN_ROUTES);
-
 const isPublicApiRoute = (pathname: string): boolean =>
 	matchesRoutes(pathname, PUBLIC_API_ROUTES);
 
 const getLocaleFromPathname = (pathname: string): string => {
-	const segments = pathname.split('/');
-	const possibleLocale = segments[1];
+	const possibleLocale = pathname.split('/')[1];
 
 	return I18N_CONFIG.SUPPORTED_LOCALES.includes(possibleLocale as any)
 		? possibleLocale
@@ -60,36 +59,23 @@ const hasValidSession = (request: NextRequest): boolean => {
 	return !!sessionToken?.value;
 };
 
-const isAdmin = (request: NextRequest): boolean => {
-	const userRole = request.cookies.get('user-role')?.value;
-
-	return userRole === 'ADMIN';
-};
+const isAdmin = (request: NextRequest): boolean =>
+	request.cookies.get('user-role')?.value === 'ADMIN';
 
 const handleApiRoute = async (request: NextRequest): Promise<NextResponse> => {
 	const { pathname } = request.nextUrl;
 	const { method } = request;
 
-	if (method === 'OPTIONS') {
-		return new NextResponse(null, { status: 200 });
-	}
-
-	if (pathname.startsWith('/api/auth/')) {
+	if (method === 'OPTIONS') return new NextResponse(null, { status: 200 });
+	if (pathname.startsWith('/api/auth/') || isPublicApiRoute(pathname))
 		return NextResponse.next();
-	}
-
-	if (isPublicApiRoute(pathname)) {
-		return NextResponse.next();
-	}
 
 	const hasSession = hasValidSession(request);
-
-	if (!hasSession) {
+	if (!hasSession)
 		return NextResponse.json(
 			{ error: 'Authentication required' },
 			{ status: 401 },
 		);
-	}
 
 	if (pathname.startsWith('/api/admin/') && !isAdmin(request)) {
 		return NextResponse.json(
@@ -104,7 +90,6 @@ const handleApiRoute = async (request: NextRequest): Promise<NextResponse> => {
 const handlePageRoute = async (request: NextRequest): Promise<NextResponse> => {
 	const { pathname } = request.nextUrl;
 	const isAuthenticated = hasValidSession(request);
-
 	const pathWithoutLocale = pathname.replace(LOCALE_REGEX, '') || '/';
 
 	if (pathWithoutLocale === PAGE_PATHS.AUTH_LOGIN && isAuthenticated) {
@@ -138,23 +123,54 @@ const handlePageRoute = async (request: NextRequest): Promise<NextResponse> => {
 	return intlMiddleware(request);
 };
 
-const addSecurityHeaders = (response: NextResponse): NextResponse => {
-	const headers = {
+const addPerformanceHeaders = (
+	response: NextResponse,
+	pathname: string,
+): NextResponse => {
+	const isStatic =
+		STATIC_ASSETS_REGEX.test(pathname) || pathname.startsWith('/_next/static');
+	const isApi = pathname.startsWith('/api/');
+
+	const securityHeaders: Record<string, string> = {
 		'X-Frame-Options': 'DENY',
 		'X-Content-Type-Options': 'nosniff',
-		'Referrer-Policy': 'origin-when-cross-origin',
+		'Referrer-Policy': 'strict-origin-when-cross-origin',
 		'X-XSS-Protection': '1; mode=block',
+		'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 	};
 
-	Object.entries(headers).forEach(([key, value]) => {
+	if (process.env.NODE_ENV === 'production') {
+		securityHeaders['Strict-Transport-Security'] =
+			'max-age=31536000; includeSubDomains; preload';
+	}
+
+	Object.entries(securityHeaders).forEach(([key, value]) => {
 		response.headers.set(key, value);
 	});
 
-	if (process.env.NODE_ENV === 'production') {
+	if (isStatic) {
 		response.headers.set(
-			'Strict-Transport-Security',
-			'max-age=31536000; includeSubDomains',
+			'Cache-Control',
+			'public, max-age=31536000, immutable',
 		);
+		response.headers.set('Content-Encoding', 'gzip');
+	} else if (isApi) {
+		response.headers.set(
+			'Cache-Control',
+			'no-cache, no-store, must-revalidate',
+		);
+		response.headers.set('Pragma', 'no-cache');
+		response.headers.set('Expires', '0');
+	} else {
+		response.headers.set(
+			'Cache-Control',
+			'public, max-age=3600, must-revalidate',
+		);
+	}
+
+	if (!isApi) {
+		response.headers.set('Content-Encoding', 'gzip');
+		response.headers.set('Vary', 'Accept-Encoding');
 	}
 
 	return response;
@@ -163,18 +179,28 @@ const addSecurityHeaders = (response: NextResponse): NextResponse => {
 const middleware = async (request: NextRequest): Promise<NextResponse> => {
 	const { pathname } = request.nextUrl;
 
+	if (
+		pathname.includes('/_next/') ||
+		pathname.includes('/api/auth/') ||
+		STATIC_ASSETS_REGEX.test(pathname)
+	) {
+		const response = NextResponse.next();
+
+		return addPerformanceHeaders(response, pathname);
+	}
+
 	const response = pathname.startsWith('/api/')
 		? await handleApiRoute(request)
 		: await handlePageRoute(request);
 
-	return addSecurityHeaders(response);
+	return addPerformanceHeaders(response, pathname);
 };
 
 export default middleware;
 
 export const config = {
 	matcher: [
-		'/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+		'/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|manifest.json).*)',
 		'/api/(.*)',
 	],
 };
