@@ -50,6 +50,7 @@
   "navigation": {
     "home": "Home",
     "modules": "Modules",
+    "chapters": "Chapters",
     "dashboard": "Dashboard",
     "profile": "Profile",
     "admin": "Admin",
@@ -76,10 +77,67 @@
     "description": "A comprehensive path from Frontend developer to Senior Backend Go Engineer in top-tier companies",
     "searchPlaceholder": "Search roadmap",
     "contents": "Contents",
-    "contentsDescription": "Modules are organized from basic Go concepts to advanced system patterns. Then there are additional cycles of articles on various topics.",
+    "contentsDescription": "Chapters are organized from basic Go concepts to advanced system patterns. Then there are additional cycles of articles on various topics.",
     "readyToStart": "Ready to start your journey?",
     "readyToStartDescription": "Join thousands of developers who are already improving their skills",
-    "completedModules": "You completed {completed} of {total} modules. Keep learning!"
+    "completedModules": "You completed {completed} of {total} chapters. Keep learning!"
+  },
+
+  "chapters": {
+    "hero": {
+      "title": "Learn Go Programming",
+      "description": "Comprehensive Go programming course with hands-on projects, system design, and real-world examples for backend development."
+    },
+    "stats": {
+      "chapters": "chapters",
+      "topics": "topics",
+      "categories": "categories"
+    },
+    "navigation": {
+      "all": "All"
+    },
+    "search": {
+      "placeholder": "Search chapters and topics..."
+    },
+    "empty": {
+      "title": "Nothing found",
+      "description": "Try changing your search terms or filters."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "Failed to load chapters. Please try refreshing the page.",
+      "retry": "Try again"
+    },
+    "title": "Go Programming Chapters",
+    "description": "Master Go programming with our comprehensive learning chapters",
+    "noChapters": "No chapters available",
+    "loadingChapters": "Loading chapters...",
+    "chapterNotFound": "Chapter not found",
+    "foundation": "🟢 FOUNDATION (Weeks 1-20)",
+    "intermediate": "🟡 INTERMEDIATE (Weeks 21-40)",
+    "advanced": "🔴 ADVANCED (Weeks 41-50)",
+    "expert": "🟣 FAANG READY (Weeks 51-60)",
+    "difficulty": {
+      "BEGINNER": "Beginner",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced",
+      "EXPERT": "Expert"
+    },
+    "estimatedTime": "Estimated time",
+    "hours": "hours",
+    "minutes": "minutes",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "startChapter": "Start Chapter",
+    "continueChapter": "Continue Chapter",
+    "chapterProgress": "Chapter Progress",
+    "topicsCompleted": "Topics Completed",
+    "faangReady": "FAANG Ready",
+    "bookmark": "Bookmark",
+    "unbookmark": "Remove Bookmark",
+    "share": "Share",
+    "export": "Export"
   },
 
   "auth": {
@@ -129,8 +187,8 @@
   "progress": {
     "title": "Your Progress",
     "overview": "Progress Overview",
-    "totalModules": "Total Modules",
-    "completedModules": "Completed Modules",
+    "totalModules": "Total Chapters",
+    "completedModules": "Completed Chapters",
     "totalTopics": "Total Topics",
     "completedTopics": "Completed Topics",
     "totalHours": "Total Hours",
@@ -146,7 +204,7 @@
     "recentActivity": "Recent Activity",
     "noActivity": "No recent activity",
     "congratulations": "Congratulations!",
-    "moduleCompleted": "Module completed!",
+    "moduleCompleted": "Chapter completed!",
     "topicCompleted": "Topic completed!",
     "achievementUnlocked": "Achievement unlocked!"
   },
@@ -156,119 +214,7 @@
     "description": "Master Go programming with our comprehensive learning modules",
     "noModules": "No modules available",
     "loadingModules": "Loading modules...",
-    "moduleNotFound": "Module not found",
-    "foundation": "🟢 FOUNDATION (Weeks 1-20)",
-    "intermediate": "🟡 INTERMEDIATE (Weeks 21-40)",
-    "advanced": "🔴 ADVANCED (Weeks 41-50)",
-    "expert": "🟣 FAANG READY (Weeks 51-60)",
-    "difficulty": {
-      "BEGINNER": "Beginner",
-      "INTERMEDIATE": "Intermediate",
-      "ADVANCED": "Advanced",
-      "EXPERT": "Expert"
-    },
-    "estimatedTime": "Estimated time",
-    "hours": "hours",
-    "minutes": "minutes",
-    "completed": "Completed",
-    "inProgress": "In Progress",
-    "notStarted": "Not Started",
-    "startModule": "Start Module",
-    "continueModule": "Continue Module",
-    "moduleProgress": "Module Progress",
-    "topicsCompleted": "Topics Completed",
-    "faangReady": "FAANG Ready",
-    "premium": "Premium",
-    "free": "Free",
-    "bookmark": "Bookmark",
-    "unbookmark": "Remove Bookmark",
-    "share": "Share",
-    "export": "Export",
-
-    "module1": {
-      "title": "Go Language Mastery",
-      "description": "Here you can learn Go, starting from basics, including many subtleties and features of Go runtime and GMP model.",
-      "duration": "(6-8 weeks)",
-      "sections": {
-        "fundamentals": "Go Fundamentals",
-        "concurrency": "Concurrency Basics",
-        "advanced": "Go Advanced & Runtime"
-      },
-      "topics": {
-        "t1_1": "Go philosophy: simplicity, readability, performance",
-        "t1_2": "Types, variables, constants, zero values",
-        "t1_3": "Functions: parameters, returns, variadic, closures",
-        "t1_4": "Control structures: if, for, switch, defer",
-        "t1_5": "Structs, methods, embedded types",
-        "t1_6": "Pointers: when to use, pass by value vs reference",
-        "t1_7": "Goroutines: creation, lifecycle, vs OS threads",
-        "t1_8": "Channels: unbuffered vs buffered, select statement",
-        "t1_9": "Channel patterns: pipeline, fan-out/fan-in",
-        "t1_10": "sync package: Mutex, RWMutex, WaitGroup",
-        "t1_11": "Context: cancellation, timeouts, values",
-        "t1_12": "Race conditions: detection, prevention",
-        "t1_13": "Go runtime architecture: scheduler, netpoller",
-        "t1_14": "GMP model: Goroutines, OS threads, Processors",
-        "t1_15": "Memory management: stack vs heap, escape analysis",
-        "t1_16": "Garbage Collector: tri-color marking, tuning",
-        "t1_17": "Reflection: use cases, performance impact",
-        "t1_18": "Unsafe operations: when and why to avoid"
-      }
-    },
-
-    "module2": {
-      "title": "Network Programming Mastery",
-      "description": "Deep dive into network programming: protocols, HTTP, WebSockets, network application performance.",
-      "duration": "(5-6 weeks)",
-      "sections": {
-        "fundamentals": "Network Fundamentals",
-        "go": "Go Network Programming"
-      },
-      "topics": {
-        "t2_1": "OSI model: layers, responsibilities, real examples",
-        "t2_2": "TCP/IP stack: IP, TCP, UDP basics",
-        "t2_3": "DNS: resolution process, types of records",
-        "t2_4": "HTTP basics: methods, status codes, headers",
-        "t2_5": "HTTPS/TLS: certificates, encryption basics",
-        "t2_6": "Sockets programming: client/server basics",
-        "t2_7": "net package: TCP/UDP clients and servers",
-        "t2_8": "net/http: server, client, middleware patterns",
-        "t2_9": "Connection pooling: keep-alive, timeouts",
-        "t2_10": "Context in network operations",
-        "t2_11": "Error handling in network code",
-        "t2_12": "Network performance optimization"
-      }
-    },
-
-    "module7": {
-      "title": "DevOps & Deployment",
-      "description": "Containerization, Kubernetes, CI/CD pipeline, deployment strategies for production applications.",
-      "duration": "(5-6 weeks)",
-      "sections": {
-        "containerization": "Containerization Basics"
-      },
-      "topics": {
-        "t7_1": "Container concepts: vs VMs, benefits",
-        "t7_2": "Docker basics: images, containers, Dockerfile",
-        "t7_3": "Multi-stage builds",
-        "t7_4": "Docker Compose: multi-container apps"
-      }
-    },
-
-    "module15": {
-      "title": "FAANG Interview Mastery",
-      "description": "Final preparation for interviews: coding, system design, behavioral questions.",
-      "duration": "(4-6 weeks)",
-      "sections": {
-        "systemDesign": "System Design Interview"
-      },
-      "topics": {
-        "t15_1": "System design approach",
-        "t15_2": "Design URL shortener",
-        "t15_3": "Design chat system",
-        "t15_4": "Design social media feed"
-      }
-    }
+    "moduleNotFound": "Module not found"
   },
 
   "tabs": {
@@ -290,7 +236,7 @@
 
   "bookmarks": {
     "title": "Bookmarks",
-    "description": "Your saved modules and topics",
+    "description": "Your saved chapters and topics",
     "noBookmarks": "No bookmarks yet",
     "addBookmark": "Add to Bookmarks",
     "removeBookmark": "Remove from Bookmarks",
@@ -310,7 +256,7 @@
     "title": "Admin Dashboard",
     "overview": "System Overview",
     "users": "User Management",
-    "modules": "Module Management",
+    "modules": "Chapter Management",
     "statistics": "Statistics"
   },
 

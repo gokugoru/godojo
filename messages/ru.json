@@ -50,6 +50,7 @@
   "navigation": {
     "home": "Главная",
     "modules": "Модули",
+    "chapters": "Главы",
     "dashboard": "Панель управления",
     "profile": "Профиль",
     "admin": "Админ",
@@ -76,10 +77,67 @@
     "description": "Путь от Frontend разработчика к Senior Backend Go Engineer в топовых компаниях",
     "searchPlaceholder": "Поиск по роадмапу",
     "contents": "Содержание",
-    "contentsDescription": "Модули организованы от базовых концепций Go до продвинутых системных паттернов. Затем идут дополнительные циклы статей на различные темы.",
+    "contentsDescription": "Главы организованы от базовых концепций Go до продвинутых системных паттернов. Затем идут дополнительные циклы статей на различные темы.",
     "readyToStart": "Готовы начать свой путь?",
     "readyToStartDescription": "Присоединяйтесь к тысячам разработчиков, которые уже развивают свои навыки",
-    "completedModules": "Вы завершили {completed} из {total} модулей. Продолжайте изучение!"
+    "completedModules": "Вы завершили {completed} из {total} глав. Продолжайте изучение!"
+  },
+
+  "chapters": {
+    "hero": {
+      "title": "Изучай программирование на Go",
+      "description": "Комплексный курс по программированию на Go с практическими проектами, системным дизайном и реальными примерами для backend разработки."
+    },
+    "stats": {
+      "chapters": "глав",
+      "topics": "тем",
+      "categories": "категорий"
+    },
+    "navigation": {
+      "all": "Все"
+    },
+    "search": {
+      "placeholder": "Найти главы и темы..."
+    },
+    "empty": {
+      "title": "Ничего не найдено",
+      "description": "Попробуйте изменить параметры поиска или фильтры."
+    },
+    "error": {
+      "title": "Произошла ошибка",
+      "description": "Не удалось загрузить главы. Попробуйте обновить страницу.",
+      "retry": "Попробовать снова"
+    },
+    "title": "Главы программирования Go",
+    "description": "Освойте программирование на Go с нашими комплексными обучающими главами",
+    "noChapters": "Нет доступных глав",
+    "loadingChapters": "Загрузка глав...",
+    "chapterNotFound": "Глава не найдена",
+    "foundation": "🟢 FOUNDATION (Недели 1-20)",
+    "intermediate": "🟡 INTERMEDIATE (Недели 21-40)",
+    "advanced": "🔴 ADVANCED (Недели 41-50)",
+    "expert": "🟣 FAANG READY (Недели 51-60)",
+    "difficulty": {
+      "BEGINNER": "Начинающий",
+      "INTERMEDIATE": "Средний",
+      "ADVANCED": "Продвинутый",
+      "EXPERT": "Эксперт"
+    },
+    "estimatedTime": "Расчетное время",
+    "hours": "часов",
+    "minutes": "минут",
+    "completed": "Завершено",
+    "inProgress": "В процессе",
+    "notStarted": "Не начато",
+    "startChapter": "Начать главу",
+    "continueChapter": "Продолжить главу",
+    "chapterProgress": "Прогресс главы",
+    "topicsCompleted": "Завершенные темы",
+    "faangReady": "Готов к FAANG",
+    "bookmark": "В закладки",
+    "unbookmark": "Удалить из закладок",
+    "share": "Поделиться",
+    "export": "Экспорт"
   },
 
   "auth": {
@@ -129,8 +187,8 @@
   "progress": {
     "title": "Ваш прогресс",
     "overview": "Обзор прогресса",
-    "totalModules": "Всего модулей",
-    "completedModules": "Завершенные модули",
+    "totalModules": "Всего глав",
+    "completedModules": "Завершенные главы",
     "totalTopics": "Всего тем",
     "completedTopics": "Завершенные темы",
     "totalHours": "Всего часов",
@@ -146,7 +204,7 @@
     "recentActivity": "Недавняя активность",
     "noActivity": "Нет недавней активности",
     "congratulations": "Поздравляем!",
-    "moduleCompleted": "Модуль завершен!",
+    "moduleCompleted": "Глава завершена!",
     "topicCompleted": "Тема завершена!",
     "achievementUnlocked": "Достижение разблокировано!"
   },
@@ -156,119 +214,7 @@
     "description": "Освойте программирование на Go с нашими комплексными обучающими модулями",
     "noModules": "Нет доступных модулей",
     "loadingModules": "Загрузка модулей...",
-    "moduleNotFound": "Модуль не найден",
-    "foundation": "🟢 FOUNDATION (Недели 1-20)",
-    "intermediate": "🟡 INTERMEDIATE (Недели 21-40)",
-    "advanced": "🔴 ADVANCED (Недели 41-50)",
-    "expert": "🟣 FAANG READY (Недели 51-60)",
-    "difficulty": {
-      "BEGINNER": "Начинающий",
-      "INTERMEDIATE": "Средний",
-      "ADVANCED": "Продвинутый",
-      "EXPERT": "Эксперт"
-    },
-    "estimatedTime": "Расчетное время",
-    "hours": "часов",
-    "minutes": "минут",
-    "completed": "Завершено",
-    "inProgress": "В процессе",
-    "notStarted": "Не начато",
-    "startModule": "Начать модуль",
-    "continueModule": "Продолжить модуль",
-    "moduleProgress": "Прогресс модуля",
-    "topicsCompleted": "Завершенные темы",
-    "faangReady": "Готов к FAANG",
-    "premium": "Премиум",
-    "free": "Бесплатно",
-    "bookmark": "В закладки",
-    "unbookmark": "Удалить из закладок",
-    "share": "Поделиться",
-    "export": "Экспорт",
-
-    "module1": {
-      "title": "Go Language Mastery",
-      "description": "Здесь вы можете изучить Go, начиная с основ, включая множество тонкостей и особенностей Go runtime и GMP модели.",
-      "duration": "(6-8 недель)",
-      "sections": {
-        "fundamentals": "Go Fundamentals",
-        "concurrency": "Concurrency Basics",
-        "advanced": "Go Advanced & Runtime"
-      },
-      "topics": {
-        "t1_1": "Go philosophy: simplicity, readability, performance",
-        "t1_2": "Types, variables, constants, zero values",
-        "t1_3": "Functions: parameters, returns, variadic, closures",
-        "t1_4": "Control structures: if, for, switch, defer",
-        "t1_5": "Structs, methods, embedded types",
-        "t1_6": "Pointers: когда использовать, pass by value vs reference",
-        "t1_7": "Goroutines: creation, lifecycle, vs OS threads",
-        "t1_8": "Channels: unbuffered vs buffered, select statement",
-        "t1_9": "Channel patterns: pipeline, fan-out/fan-in",
-        "t1_10": "sync package: Mutex, RWMutex, WaitGroup",
-        "t1_11": "Context: cancellation, timeouts, values",
-        "t1_12": "Race conditions: detection, prevention",
-        "t1_13": "Go runtime architecture: scheduler, netpoller",
-        "t1_14": "GMP model: Goroutines, OS threads, Processors",
-        "t1_15": "Memory management: stack vs heap, escape analysis",
-        "t1_16": "Garbage Collector: tri-color marking, tuning",
-        "t1_17": "Reflection: use cases, performance impact",
-        "t1_18": "Unsafe operations: when и why to avoid"
-      }
-    },
-
-    "module2": {
-      "title": "Network Programming Mastery",
-      "description": "Глубокое изучение сетевого программирования: протоколы, HTTP, WebSockets, производительность сетевых приложений.",
-      "duration": "(5-6 недель)",
-      "sections": {
-        "fundamentals": "Network Fundamentals",
-        "go": "Go Network Programming"
-      },
-      "topics": {
-        "t2_1": "OSI model: layers, responsibilities, real examples",
-        "t2_2": "TCP/IP stack: IP, TCP, UDP basics",
-        "t2_3": "DNS: resolution process, types of records",
-        "t2_4": "HTTP basics: methods, status codes, headers",
-        "t2_5": "HTTPS/TLS: certificates, encryption basics",
-        "t2_6": "Sockets programming: client/server basics",
-        "t2_7": "net package: TCP/UDP clients and servers",
-        "t2_8": "net/http: server, client, middleware patterns",
-        "t2_9": "Connection pooling: keep-alive, timeouts",
-        "t2_10": "Context в network operations",
-        "t2_11": "Error handling в network code",
-        "t2_12": "Network performance optimization"
-      }
-    },
-
-    "module7": {
-      "title": "DevOps & Deployment",
-      "description": "Контейнеризация, Kubernetes, CI/CD pipeline, стратегии развертывания для production приложений.",
-      "duration": "(5-6 недель)",
-      "sections": {
-        "containerization": "Containerization Basics"
-      },
-      "topics": {
-        "t7_1": "Container concepts: vs VMs, benefits",
-        "t7_2": "Docker basics: images, containers, Dockerfile",
-        "t7_3": "Multi-stage builds",
-        "t7_4": "Docker Compose: multi-container apps"
-      }
-    },
-
-    "module15": {
-      "title": "FAANG Interview Mastery",
-      "description": "Финальная подготовка к собеседованиям: coding, system design, behavioral questions.",
-      "duration": "(4-6 недель)",
-      "sections": {
-        "systemDesign": "System Design Interview"
-      },
-      "topics": {
-        "t15_1": "System design approach",
-        "t15_2": "Design URL shortener",
-        "t15_3": "Design chat system",
-        "t15_4": "Design social media feed"
-      }
-    }
+    "moduleNotFound": "Модуль не найден"
   },
 
   "tabs": {
@@ -290,7 +236,7 @@
 
   "bookmarks": {
     "title": "Закладки",
-    "description": "Ваши сохраненные модули и темы",
+    "description": "Ваши сохраненные главы и темы",
     "noBookmarks": "Пока нет закладок",
     "addBookmark": "Добавить в закладки",
     "removeBookmark": "Удалить из закладок",
@@ -310,7 +256,7 @@
     "title": "Админ панель",
     "overview": "Обзор системы",
     "users": "Управление пользователями",
-    "modules": "Управление модулями",
+    "modules": "Управление главами",
     "statistics": "Статистика"
   },
 

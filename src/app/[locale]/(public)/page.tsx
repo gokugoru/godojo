@@ -1,43 +1,40 @@
 // src/app/[locale]/(public)/page.tsx
 import { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import ModulesHome from '@/components/modules/modules-home';
+import ChaptersHomeWrapper from '@/components/chapters/chapters-home-wrapper';
 import {
 	generateI18nSEOMetadata,
 	i18nSEOConfigs,
 } from '@/lib/seo/i18n-metadata';
 import { generateStructuredData } from '@/lib/seo/structured-data';
+import { Difficulty } from '@prisma/client';
 
 interface HomePageProps {
 	params: { locale: string };
+	searchParams?: {
+		tab?: string;
+		category?: string;
+		difficulty?: Difficulty;
+		search?: string;
+		page?: string;
+	};
 }
 
-/**
- * Generate advanced SEO metadata for homepage
- * This is the main landing page that should rank well in search
- */
 export async function generateMetadata({
 	params,
-}: HomePageProps): Promise<Metadata> {
+}: Pick<HomePageProps, 'params'>): Promise<Metadata> {
 	const { locale } = params;
 
-	// Generate comprehensive SEO metadata with translations
 	return await generateI18nSEOMetadata(i18nSEOConfigs.home, locale);
 }
 
-/**
- * Homepage component with full SEO optimization
- * Focus: Attract users searching for Go programming education
- */
-const HomePage = async ({ params }: HomePageProps) => {
+const HomePage = async ({ params, searchParams }: HomePageProps) => {
 	const { locale } = params;
 	setRequestLocale(locale);
 
 	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
 
-	// Enhanced structured data for homepage
 	const structuredData = [
-		// Course structured data for educational content
 		generateStructuredData({
 			type: 'Course',
 			title: 'Go Programming Course - Master Backend Development',
@@ -47,7 +44,14 @@ const HomePage = async ({ params }: HomePageProps) => {
 			image: `${baseUrl}/images/og-course.png`,
 		}),
 
-		// Breadcrumb for navigation
+		generateStructuredData({
+			type: 'WebSite',
+		}),
+
+		generateStructuredData({
+			type: 'Organization',
+		}),
+
 		generateStructuredData({
 			type: 'BreadcrumbList',
 			breadcrumbs: [{ name: 'Home', url: `${baseUrl}/${locale}` }],
@@ -56,7 +60,6 @@ const HomePage = async ({ params }: HomePageProps) => {
 
 	return (
 		<>
-			{/* Enhanced JSON-LD Structured Data for homepage */}
 			<script
 				type='application/ld+json'
 				dangerouslySetInnerHTML={{
@@ -64,10 +67,8 @@ const HomePage = async ({ params }: HomePageProps) => {
 				}}
 			/>
 
-			{/* Main homepage content */}
-			<ModulesHome params={params} />
+			<ChaptersHomeWrapper params={params} searchParams={searchParams} />
 
-			{/* Hidden semantic content for SEO (if needed) */}
 			<div className='sr-only'>
 				<h1>Learn Go Programming - Complete Backend Development Course</h1>
 				<p>

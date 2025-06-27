@@ -24,6 +24,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -34,6 +35,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -49,6 +51,9 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
+
   accounts     Account[]
   sessions     Session[]
   userProgress UserProgress[]
@@ -56,6 +61,9 @@ model User {
   bookExports  BookExport[]
   bookmarks    Bookmark[]
 
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -75,14 +83,20 @@ model Tab {
   titleRu       String   @map("title_ru")
   descriptionEn String?  @map("description_en")
   descriptionRu String?  @map("description_ru")
+  icon          String?
+  color         String?  @default("#3b82f6")
   sortOrder     Int      @default(0) @map("sort_order")
   isActive      Boolean  @default(true) @map("is_active")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  categories Category[]
-  modules    Module[]
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
+  categories Category[]
+  chapters   Chapter[]
+
+  @@index([isActive, sortOrder])
   @@map("tabs")
 }
 
@@ -100,13 +114,17 @@ model Category {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  tab     Tab      @relation(fields: [tabId], references: [id], onDelete: Cascade)
-  modules Module[]
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
+  tab      Tab       @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
+
+  @@index([tabId, isActive, sortOrder])
   @@map("categories")
 }
 
-model Module {
+model Chapter {
   id             String     @id @default(cuid())
   tabId          String     @map("tab_id")
   categoryId     String?    @map("category_id")
@@ -121,11 +139,20 @@ model Module {
   sortOrder      Int        @default(0) @map("sort_order")
   isPublished    Boolean    @default(false) @map("is_published")
   isFaang        Boolean    @default(false) @map("is_faang")
-  gitPath        String?    @map("git_path")
-  lastSyncAt     DateTime?  @map("last_sync_at")
-  gitCommitHash  String?    @map("git_commit_hash")
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  metaTitleEn String? @map("meta_title_en")
+  metaTitleRu String? @map("meta_title_ru")
+  metaDescEn  String? @map("meta_desc_en")
+  metaDescRu  String? @map("meta_desc_ru")
+
+  gitPath       String?   @map("git_path")
+  lastSyncAt    DateTime? @map("last_sync_at")
+  gitCommitHash String?   @map("git_commit_hash")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   tab          Tab            @relation(fields: [tabId], references: [id], onDelete: Cascade)
   category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -133,69 +160,83 @@ model Module {
   topics       Topic[]
   userProgress UserProgress[]
   bookmarks    Bookmark[]
-  moduleTags   ModuleTag[]
+  chapterTags  ChapterTag[]
   achievements Achievement[]
 
-  @@map("modules")
+  @@index([tabId, isPublished, sortOrder])
+  @@index([categoryId, isPublished, sortOrder])
+  @@index([isPublished, difficulty])
+  @@index([slug])
+  @@map("chapters")
 }
 
 model Section {
-  id            String    @id @default(cuid())
-  moduleId      String    @map("module_id")
-  slug          String    @unique
-  titleEn       String    @map("title_en")
-  titleRu       String    @map("title_ru")
-  contentEn     String?   @map("content_en") @db.Text
-  contentRu     String?   @map("content_ru") @db.Text
-  sortOrder     Int       @default(0) @map("sort_order")
-  isPublished   Boolean   @default(false) @map("is_published")
+  id          String  @id @default(cuid())
+  chapterId   String  @map("chapter_id")
+  slug        String  @unique
+  titleEn     String  @map("title_en")
+  titleRu     String  @map("title_ru")
+  contentEn   String? @map("content_en") @db.Text
+  contentRu   String? @map("content_ru") @db.Text
+  sortOrder   Int     @default(0) @map("sort_order")
+  isPublished Boolean @default(false) @map("is_published")
+
   gitPath       String?   @map("git_path")
   lastSyncAt    DateTime? @map("last_sync_at")
   gitCommitHash String?   @map("git_commit_hash")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  module Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  topics Topic[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  topics  Topic[]
+
+  @@index([chapterId, isPublished, sortOrder])
   @@map("sections")
 }
 
 model Topic {
-  id            String    @id @default(cuid())
-  moduleId      String    @map("module_id")
-  sectionId     String?   @map("section_id")
-  slug          String    @unique
-  titleEn       String    @map("title_en")
-  titleRu       String    @map("title_ru")
-  contentEn     String?   @map("content_en") @db.Text
-  contentRu     String?   @map("content_ru") @db.Text
-  codeExample   String?   @map("code_example") @db.Text
-  videoUrl      String?   @map("video_url")
-  githubUrl     String?   @map("github_url")
-  sortOrder     Int       @default(0) @map("sort_order")
-  duration      Int       @default(0)
-  isPublished   Boolean   @default(false) @map("is_published")
-  isFree        Boolean   @default(true) @map("is_free")
+  id          String  @id @default(cuid())
+  chapterId   String  @map("chapter_id")
+  sectionId   String? @map("section_id")
+  slug        String  @unique
+  titleEn     String  @map("title_en")
+  titleRu     String  @map("title_ru")
+  contentEn   String? @map("content_en") @db.Text
+  contentRu   String? @map("content_ru") @db.Text
+  codeExample String? @map("code_example") @db.Text
+  videoUrl    String? @map("video_url")
+  githubUrl   String? @map("github_url")
+  sortOrder   Int     @default(0) @map("sort_order")
+  duration    Int     @default(0)
+  isPublished Boolean @default(false) @map("is_published")
+
   gitPath       String?   @map("git_path")
   lastSyncAt    DateTime? @map("last_sync_at")
   gitCommitHash String?   @map("git_commit_hash")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  module       Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  chapter      Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   section      Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   userProgress UserProgress[]
   bookmarks    Bookmark[]
   topicTags    TopicTag[]
 
+  @@index([chapterId, isPublished, sortOrder])
+  @@index([sectionId, isPublished, sortOrder])
   @@map("topics")
 }
 
 model UserProgress {
   id          String         @id @default(cuid())
   userId      String         @map("user_id")
-  moduleId    String         @map("module_id")
+  chapterId   String         @map("chapter_id")
   topicId     String?        @map("topic_id")
   status      ProgressStatus @default(NOT_STARTED)
   completedAt DateTime?      @map("completed_at")
@@ -204,11 +245,13 @@ model UserProgress {
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  topic  Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  topic   Topic?  @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, moduleId, topicId])
+  @@unique([userId, chapterId, topicId])
+  @@index([userId, status])
+  @@index([userId, updatedAt])
   @@map("user_progress")
 }
 
@@ -216,30 +259,32 @@ model Achievement {
   id         String          @id @default(cuid())
   userId     String          @map("user_id")
   type       AchievementType
-  moduleId   String?         @map("module_id")
+  chapterId  String?         @map("chapter_id")
   unlockedAt DateTime        @default(now()) @map("unlocked_at")
   metadata   Json?
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, type, moduleId])
+  @@unique([userId, type, chapterId])
+  @@index([userId, unlockedAt])
   @@map("achievements")
 }
 
 model Bookmark {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  moduleId  String?  @map("module_id")
+  chapterId String?  @map("chapter_id")
   topicId   String?  @map("topic_id")
   notes     String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
-  topic  Topic?  @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, moduleId, topicId])
+  @@unique([userId, chapterId, topicId])
+  @@index([userId, createdAt])
   @@map("bookmarks")
 }
 
@@ -251,7 +296,6 @@ model BookTemplate {
   descriptionEn    String?  @map("description_en") @db.Text
   descriptionRu    String?  @map("description_ru") @db.Text
   isPublic         Boolean  @default(true) @map("is_public")
-  isPremium        Boolean  @default(false) @map("is_premium")
   includeCode      Boolean  @default(true) @map("include_code")
   includeExamples  Boolean  @default(true) @map("include_examples")
   includeProgress  Boolean  @default(false) @map("include_progress")
@@ -273,7 +317,7 @@ model BookChapter {
   id             String   @id @default(cuid())
   bookTemplateId String   @map("book_template_id")
   tabId          String?  @map("tab_id")
-  moduleId       String?  @map("module_id")
+  chapterId      String?  @map("chapter_id")
   sectionId      String?  @map("section_id")
   topicIds       String[] @default([]) @map("topic_ids")
   titleEn        String   @map("title_en")
@@ -312,6 +356,7 @@ model BookExport {
   bookTemplate BookTemplate @relation(fields: [bookTemplateId], references: [id], onDelete: Cascade)
   user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([status, createdAt])
   @@map("book_exports")
 }
 
@@ -327,6 +372,7 @@ model GitHubIntegration {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  @@unique([repoOwner, repoName])
   @@map("github_integrations")
 }
 
@@ -341,21 +387,21 @@ model Tag {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  moduleTags ModuleTag[]
-  topicTags  TopicTag[]
+  chapterTags ChapterTag[]
+  topicTags   TopicTag[]
 
   @@map("tags")
 }
 
-model ModuleTag {
-  moduleId String @map("module_id")
-  tagId    String @map("tag_id")
+model ChapterTag {
+  chapterId String @map("chapter_id")
+  tagId     String @map("tag_id")
 
-  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  @@id([moduleId, tagId])
-  @@map("module_tags")
+  @@id([chapterId, tagId])
+  @@map("chapter_tags")
 }
 
 model TopicTag {
@@ -369,10 +415,24 @@ model TopicTag {
   @@map("topic_tags")
 }
 
+enum AchievementType {
+  CHAPTER_COMPLETED
+  TOPIC_COMPLETED
+  WEEK_STREAK
+  MONTH_STREAK
+  FIRST_LESSON
+  FAANG_READY
+  SPEED_LEARNER
+  BOOKMARK_COLLECTOR
+  NOTE_TAKER
+  COMMUNITY_STAR
+}
+
 enum UserRole {
   USER
   ADMIN
   MODERATOR
+  INSTRUCTOR
 }
 
 enum Difficulty {
@@ -387,19 +447,7 @@ enum ProgressStatus {
   IN_PROGRESS
   COMPLETED
   SKIPPED
-}
-
-enum AchievementType {
-  MODULE_COMPLETED
-  TOPIC_COMPLETED
-  WEEK_STREAK
-  MONTH_STREAK
-  FIRST_LESSON
-  FAANG_READY
-  SPEED_LEARNER
-  BOOKMARK_COLLECTOR
-  NOTE_TAKER
-  COMMUNITY_STAR
+  PAUSED
 }
 
 enum BookFormat {
@@ -416,4 +464,5 @@ enum ExportStatus {
   COMPLETED
   FAILED
   EXPIRED
+  CANCELLED
 }
