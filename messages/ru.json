@@ -44,7 +44,128 @@
     "completed": "Завершено",
     "inProgress": "В процессе",
     "notStarted": "Не начато",
-    "locked": "Заблокировано"
+    "locked": "Заблокировано",
+    "difficulty": {
+      "beginner": "Начинающий",
+      "intermediate": "Средний",
+      "advanced": "Продвинутый",
+      "expert": "Эксперт"
+    }
+  },
+
+  "home": {
+    "title": "Go Backend Engineer Roadmap 2025",
+    "description": "Полный путь от Frontend разработчика до Senior Backend Go Engineer в топовых компаниях",
+    "stats": {
+      "modules": "Модулей обучения",
+      "exercises": "Практических заданий",
+      "hours": "Часов контента"
+    },
+    "tabs": {
+      "allModules": {
+        "title": "ВСЕ МОДУЛИ",
+        "subtitle": "Go Language",
+        "description": "Модули организованы от базовых Go концепций к продвинутым системным паттернам. Затем есть дополнительные циклы статей на различные темы."
+      },
+      "databases": {
+        "title": "БАЗЫ ДАННЫХ",
+        "subtitle": "SQL & NoSQL",
+        "description": "Работа с базами данных, оптимизация запросов, архитектурные решения для высоконагруженных систем."
+      },
+      "network": {
+        "title": "СЕТЬ",
+        "subtitle": "HTTP & Protocols",
+        "description": "Сетевое программирование, протоколы, микросервисная архитектура и распределенные системы."
+      },
+      "contents": {
+        "title": "Contents",
+        "completed": "завершено"
+      }
+    },
+    "searchInput": {
+      "title": "Поиск по роадмапу",
+      "placeholder": "Введите ключевые слова, например, 'горутины', 'HTTP', 'базы данных'..."
+    },
+    "chapters": {
+      "fundamentals": {
+        "title": "Go Fundamentals",
+        "badge": "FAANG Focus",
+        "time": "5 недель",
+        "items": {
+          "installation": "Go installation: binary, source, version management",
+          "gopath": "GOPATH vs Go modules history",
+          "commands": "go command: build, run, install, clean, env",
+          "formatting": "go fmt: code formatting standards",
+          "staticAnalysis": "go vet: static analysis, common mistakes",
+          "modules": "go mod: init, tidy, download, vendor",
+          "documentation": "go doc: documentation generation",
+          "testing": "go test: testing commands, flags",
+          "crossCompilation": "Cross compilation: GOOS, GOARCH",
+          "buildTags": "Build tags and conditional compilation"
+        }
+      },
+      "languageCore": {
+        "title": "Language Core",
+        "time": "2 недели",
+        "items": {
+          "philosophy": "Go philosophy: simplicity, readability, performance",
+          "arrays": "Arrays and slices: internals, performance",
+          "typeInference": "Type inference: explicit vs implicit"
+        }
+      },
+      "setup": {
+        "title": "Go Setup & Tooling",
+        "description": "Изучите основы установки Go, настройки рабочего окружения и основные инструменты разработки.",
+        "time": "1 неделя"
+      },
+      "core": {
+        "title": "Language Core",
+        "description": "Основы языка Go: типы данных, переменные, функции и базовые конструкции.",
+        "time": "2 недели"
+      },
+      "concurrency": {
+        "title": "Concurrency Patterns",
+        "description": "Горутины, каналы и паттерны конкурентного программирования в Go.",
+        "time": "3 недели"
+      },
+      "http": {
+        "title": "HTTP & Web Services",
+        "description": "Создание веб-сервисов, работа с HTTP, REST API и микросервисы.",
+        "time": "4 недели"
+      },
+      "database": {
+        "title": "Database Integration",
+        "description": "Работа с базами данных: SQL, NoSQL, ORM и оптимизация запросов.",
+        "time": "3 недели"
+      },
+      "systemDesign": {
+        "title": "System Design",
+        "description": "Проектирование масштабируемых систем, архитектурные паттерны.",
+        "time": "6 недель"
+      },
+      "progress": "Прогресс",
+      "lessons": "уроков",
+      "continue": "Продолжить",
+      "start": "Начать"
+    }
+  },
+
+  "topic": {
+    "lastUpdated": "Последнее обновление",
+    "minutes": "мин",
+    "whatYouLearn": "Что вы изучите",
+    "codeExample": "Пример кода",
+    "resources": "Ресурсы",
+    "viewOnGithub": "Посмотреть код на GitHub",
+    "watchVideo": "Посмотреть видео",
+    "backToChapter": "Назад к главе",
+    "allTopicsIn": "Все темы в",
+    "aboutTopic": "Об этой теме",
+    "contentPreparing": "Контент для этой темы готовится. Подробный материал скоро будет доступен!",
+    "coreConceptsOf": "Основные концепции",
+    "practicalImplementation": "Практическая реализация в Go",
+    "bestPractices": "Лучшие практики и частые ошибки",
+    "realWorldExamples": "Примеры реального использования"
   },
 
   "seo": {

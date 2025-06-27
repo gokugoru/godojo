@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
+
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
@@ -31,3 +33,5 @@ export function formatNumber(num: number): string {
 
 	return num.toString();
 }
+
+export const getBaseUrl = (): string => BASE_URL;

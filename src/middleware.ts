@@ -36,6 +36,7 @@ const ADMIN_API_ROUTES = ['/api/admin'] as const;
 const ROLE_HIERARCHY: Record<UserRole, UserRole[]> = {
 	ADMIN: ['ADMIN', 'MODERATOR', 'USER'],
 	MODERATOR: ['MODERATOR', 'USER'],
+	INSTRUCTOR: ['INSTRUCTOR', 'USER'],
 	USER: ['USER'],
 };
 

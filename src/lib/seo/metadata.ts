@@ -1,10 +1,11 @@
 // src/lib/seo/metadata.ts
 import { Metadata } from 'next';
 import { SEOConfig } from '@/lib/seo/types';
+import { getBaseUrl } from '@/lib/utils';
 
 const defaultSEOConfig = {
 	siteName: 'Go Dojo',
-	siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev',
+	siteUrl: getBaseUrl(),
 	defaultImage: '/images/og-default.png',
 	twitterHandle: '@godojo_dev',
 	githubHandle: 'godojo',

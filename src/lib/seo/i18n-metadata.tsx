@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { LocalizedSEOConfig } from '@/lib/seo/types';
+import { getBaseUrl } from '@/lib/utils';
 
 /**
  * Generate internationalized SEO metadata with translations
@@ -12,7 +13,7 @@ export const generateI18nSEOMetadata = async (
 	locale: string,
 ): Promise<Metadata> => {
 	const t = await getTranslations('seo');
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
+	const baseUrl = getBaseUrl();
 
 	// Get localized content
 	const title = t(config.titleKey);

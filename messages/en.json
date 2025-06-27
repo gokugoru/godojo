@@ -44,7 +44,128 @@
     "completed": "Completed",
     "inProgress": "In Progress",
     "notStarted": "Not Started",
-    "locked": "Locked"
+    "locked": "Locked",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "expert": "Expert"
+    }
+  },
+
+  "home": {
+    "title": "Go Backend Engineer Roadmap 2025",
+    "description": "A comprehensive path from Frontend developer to Senior Backend Go Engineer in top-tier companies",
+    "stats": {
+      "modules": "Learning Modules",
+      "exercises": "Practical Exercises",
+      "hours": "Hours of Content"
+    },
+    "searchInput": {
+      "title": "Search Roadmap",
+      "placeholder": "Search for modules, chapters or topics..."
+    },
+    "tabs": {
+      "allModules": {
+        "title": "ALL MODULES",
+        "subtitle": "Go Language",
+        "description": "Modules are organized from basic Go concepts to advanced system patterns. Then there are additional cycles of articles on various topics."
+      },
+      "databases": {
+        "title": "DATABASES",
+        "subtitle": "SQL & NoSQL",
+        "description": "Working with databases, query optimization, architectural solutions for high-load systems."
+      },
+      "network": {
+        "title": "NETWORK",
+        "subtitle": "HTTP & Protocols",
+        "description": "Network programming, protocols, microservice architecture and distributed systems."
+      },
+      "contents": {
+        "title": "Contents",
+        "completed": "completed"
+      }
+    },
+    "chapters": {
+      "fundamentals": {
+        "title": "Go Fundamentals",
+        "badge": "FAANG Focus",
+        "time": "5 weeks",
+        "items": {
+          "installation": "Go installation: binary, source, version management",
+          "gopath": "GOPATH vs Go modules history",
+          "commands": "go command: build, run, install, clean, env",
+          "formatting": "go fmt: code formatting standards",
+          "staticAnalysis": "go vet: static analysis, common mistakes",
+          "modules": "go mod: init, tidy, download, vendor",
+          "documentation": "go doc: documentation generation",
+          "testing": "go test: testing commands, flags",
+          "crossCompilation": "Cross compilation: GOOS, GOARCH",
+          "buildTags": "Build tags and conditional compilation"
+        }
+      },
+      "languageCore": {
+        "title": "Language Core",
+        "time": "2 weeks",
+        "items": {
+          "philosophy": "Go philosophy: simplicity, readability, performance",
+          "arrays": "Arrays and slices: internals, performance",
+          "typeInference": "Type inference: explicit vs implicit"
+        }
+      },
+      "setup": {
+        "title": "Go Setup & Tooling",
+        "description": "Learn the basics of Go installation, workspace setup and essential development tools.",
+        "time": "1 week"
+      },
+      "core": {
+        "title": "Language Core",
+        "description": "Go language fundamentals: data types, variables, functions and basic constructs.",
+        "time": "2 weeks"
+      },
+      "concurrency": {
+        "title": "Concurrency Patterns",
+        "description": "Goroutines, channels and concurrent programming patterns in Go.",
+        "time": "3 weeks"
+      },
+      "http": {
+        "title": "HTTP & Web Services",
+        "description": "Building web services, working with HTTP, REST APIs and microservices.",
+        "time": "4 weeks"
+      },
+      "database": {
+        "title": "Database Integration",
+        "description": "Working with databases: SQL, NoSQL, ORM and query optimization.",
+        "time": "3 weeks"
+      },
+      "systemDesign": {
+        "title": "System Design",
+        "description": "Designing scalable systems, architectural patterns.",
+        "time": "6 weeks"
+      },
+      "progress": "Progress",
+      "lessons": "lessons",
+      "continue": "Continue",
+      "start": "Start"
+    }
+  },
+
+  "topic": {
+    "lastUpdated": "Last updated",
+    "minutes": "min",
+    "whatYouLearn": "What you'll learn",
+    "codeExample": "Code Example",
+    "resources": "Resources",
+    "viewOnGithub": "View code on GitHub",
+    "watchVideo": "Watch video",
+    "backToChapter": "Back to chapter",
+    "allTopicsIn": "All topics in",
+    "aboutTopic": "About this topic",
+    "contentPreparing": "Content for this topic is being prepared. Detailed material will be available soon!",
+    "coreConceptsOf": "Core concepts of",
+    "practicalImplementation": "Practical implementation in Go",
+    "bestPractices": "Best practices and common pitfalls",
+    "realWorldExamples": "Real-world usage examples"
   },
 
   "seo": {

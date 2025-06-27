@@ -1,33 +1,44 @@
 // src/lib/seo/structured-data.ts
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
+import { getBaseUrl } from '@/lib/utils';
 
-/**
- * Generate structured data (JSON-LD) for enhanced SEO
- * Only for PUBLIC pages that should appear in search results
- */
-export const generateStructuredData = (config: {
-	type:
+const baseUrl = getBaseUrl();
+
+interface BreadcrumbItem {
+	readonly name: string;
+	readonly url: string;
+}
+
+interface FAQItem {
+	readonly question: string;
+	readonly answer: string;
+}
+
+interface StructuredDataConfig {
+	readonly type:
 		| 'WebSite'
 		| 'Organization'
 		| 'Course'
 		| 'Article'
 		| 'BreadcrumbList'
-		| 'FAQPage';
-	title?: string;
-	description?: string;
-	url?: string;
-	image?: string;
-	datePublished?: string;
-	dateModified?: string;
-	author?: string;
-	breadcrumbs?: Array<{ name: string; url: string }>;
-	faqs?: Array<{ question: string; answer: string }>;
-}) => {
+		| 'FAQPage'
+		| 'WebPage';
+	readonly title?: string;
+	readonly description?: string;
+	readonly url?: string;
+	readonly image?: string;
+	readonly publishedTime?: string;
+	readonly modifiedTime?: string;
+	readonly authors?: readonly string[];
+	readonly breadcrumbs?: readonly BreadcrumbItem[];
+	readonly faqs?: readonly FAQItem[];
+}
+
+export const generateStructuredData = (config: StructuredDataConfig) => {
 	const commonData = {
 		'@context': 'https://schema.org',
 		'@type': config.type,
-	};
+	} as const;
 
 	switch (config.type) {
 		case 'WebSite':
@@ -101,11 +112,11 @@ export const generateStructuredData = (config: {
 					width: 1200,
 					height: 630,
 				},
-				datePublished: config.datePublished,
-				dateModified: config.dateModified,
+				datePublished: config.publishedTime,
+				dateModified: config.modifiedTime,
 				author: {
 					'@type': 'Organization',
-					name: config.author || 'Go Dojo',
+					name: config.authors?.[0] || 'Go Dojo',
 					url: baseUrl,
 				},
 				publisher: {
@@ -152,51 +163,59 @@ export const generateStructuredData = (config: {
 				})),
 			};
 
+		case 'WebPage':
+			return {
+				...commonData,
+				name: config.title,
+				description: config.description,
+				url: config.url,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: 'Go Dojo',
+					url: baseUrl,
+				},
+			};
+
 		default:
 			return commonData;
 	}
 };
 
-/**
- * Common FAQ data for Go programming topics
- */
-export const generateGoTopicFAQs = (topicTitle: string) => [
-	{
-		question: `What is ${topicTitle} in Go programming?`,
-		answer: `${topicTitle} is an important concept in Go programming that helps developers build efficient backend applications. This tutorial covers practical implementation with code examples.`,
-	},
-	{
-		question: `How do I learn ${topicTitle} effectively?`,
-		answer:
-			'Start with the fundamentals, practice with code examples, and build real projects. Our comprehensive tutorial provides step-by-step guidance with hands-on exercises.',
-	},
-	{
-		question: `Why is ${topicTitle} important for backend development?`,
-		answer: `${topicTitle} is crucial for building scalable backend systems. Understanding this concept helps you write better Go code and prepare for technical interviews at top companies.`,
-	},
-];
+export const generateGoTopicFAQs = (topicTitle: string): readonly FAQItem[] =>
+	[
+		{
+			question: `What is ${topicTitle} in Go programming?`,
+			answer: `${topicTitle} is an important concept in Go programming that helps developers build efficient backend applications. This tutorial covers practical implementation with code examples.`,
+		},
+		{
+			question: `How do I learn ${topicTitle} effectively?`,
+			answer:
+				'Start with the fundamentals, practice with code examples, and build real projects. Our comprehensive tutorial provides step-by-step guidance with hands-on exercises.',
+		},
+		{
+			question: `Why is ${topicTitle} important for backend development?`,
+			answer: `${topicTitle} is crucial for building scalable backend systems. Understanding this concept helps you write better Go code and prepare for technical interviews at top companies.`,
+		},
+	] as const;
 
-/**
- * Generate complete structured data for a topic page
- */
 export const generateTopicStructuredData = (
 	topicTitle: string,
-	moduleTitle: string,
+	chapterTitle: string,
 	description: string,
 	url: string,
 	locale: string,
-	breadcrumbs: Array<{ name: string; url: string }>,
+	breadcrumbs: readonly BreadcrumbItem[],
 ) => {
 	return [
 		generateStructuredData({
 			type: 'Article',
-			title: `${topicTitle} - ${moduleTitle}`,
+			title: `${topicTitle} - ${chapterTitle}`,
 			description,
 			url,
 			image: `${baseUrl}/images/topics/${topicTitle.toLowerCase().replace(/\s+/g, '-')}.png`,
-			datePublished: new Date().toISOString(),
-			dateModified: new Date().toISOString(),
-			author: 'Go Dojo',
+			publishedTime: new Date().toISOString(),
+			modifiedTime: new Date().toISOString(),
+			authors: ['Go Dojo Team'],
 		}),
 		generateStructuredData({
 			type: 'BreadcrumbList',
@@ -206,5 +225,5 @@ export const generateTopicStructuredData = (
 			type: 'FAQPage',
 			faqs: generateGoTopicFAQs(topicTitle),
 		}),
-	];
+	] as const;
 };

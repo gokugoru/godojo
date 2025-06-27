@@ -1,38 +1,49 @@
-import { Metadata } from 'next';
+// src/app/[locale]/(public)/page.tsx
+import { type Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import ChaptersHomeWrapper from '@/components/chapters/chapters-home-wrapper';
+import { HomeStructure } from '@/components/home/home-structure';
 import {
 	generateI18nSEOMetadata,
 	i18nSEOConfigs,
 } from '@/lib/seo/i18n-metadata';
 import { generateStructuredData } from '@/lib/seo/structured-data';
-import { Difficulty } from '@prisma/client';
+import { type Difficulty } from '@prisma/client';
+import { getBaseUrl } from '@/lib/utils';
 
-type HomePageProps = {
-	params: Promise<{ locale: string }>;
-	searchParams?: Promise<{
-		tab?: string;
-		category?: string;
-		difficulty?: Difficulty;
-		search?: string;
-		page?: string;
-	}>;
-};
+interface HomePageParams {
+	readonly locale: string;
+}
 
-export async function generateMetadata({
+interface HomePageSearchParams {
+	readonly tab?: string;
+	readonly category?: string;
+	readonly difficulty?: Difficulty;
+	readonly search?: string;
+	readonly page?: string;
+}
+
+interface HomePageProps {
+	readonly params: Promise<HomePageParams>;
+	readonly searchParams?: Promise<HomePageSearchParams>;
+}
+
+export const generateMetadata = async ({
 	params,
-}: Pick<HomePageProps, 'params'>): Promise<Metadata> {
+}: Pick<HomePageProps, 'params'>): Promise<Metadata> => {
 	const { locale } = await params;
 
 	return await generateI18nSEOMetadata(i18nSEOConfigs.home, locale);
-}
+};
 
-const HomePage = async ({ params, searchParams }: HomePageProps) => {
+const HomePage = async ({
+	params,
+	searchParams,
+}: HomePageProps): Promise<JSX.Element> => {
 	const { locale } = await params;
 	const resolvedSearchParams = searchParams ? await searchParams : {};
 	setRequestLocale(locale);
 
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
+	const baseUrl = getBaseUrl();
 
 	const structuredData = [
 		generateStructuredData({
@@ -56,7 +67,7 @@ const HomePage = async ({ params, searchParams }: HomePageProps) => {
 			type: 'BreadcrumbList',
 			breadcrumbs: [{ name: 'Home', url: `${baseUrl}/${locale}` }],
 		}),
-	];
+	] as const;
 
 	return (
 		<>
@@ -67,10 +78,7 @@ const HomePage = async ({ params, searchParams }: HomePageProps) => {
 				}}
 			/>
 
-			<ChaptersHomeWrapper
-				locale={locale}
-				searchParams={resolvedSearchParams}
-			/>
+			<HomeStructure locale={locale} searchParams={resolvedSearchParams} />
 
 			<div className='sr-only'>
 				<h1>Learn Go Programming - Complete Backend Development Course</h1>

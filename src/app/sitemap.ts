@@ -1,11 +1,12 @@
 // src/app/sitemap.ts
 import { MetadataRoute } from 'next';
 import { db } from '@/lib/prisma';
+import { getBaseUrl } from '@/lib/utils';
 
 interface SitemapEntry {
-	url: string;
-	lastModified?: string | Date;
-	changeFrequency?:
+	readonly url: string;
+	readonly lastModified?: string | Date;
+	readonly changeFrequency?:
 		| 'always'
 		| 'hourly'
 		| 'daily'
@@ -13,20 +14,20 @@ interface SitemapEntry {
 		| 'monthly'
 		| 'yearly'
 		| 'never';
-	priority?: number;
-	alternates?: {
-		languages?: Record<string, string>;
+	readonly priority?: number;
+	readonly alternates?: {
+		readonly languages?: Record<string, string>;
 	};
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
+	const baseUrl = getBaseUrl();
 	const currentDate = new Date();
 
 	const sitemapEntries: SitemapEntry[] = [];
 
 	// STATIC PUBLIC PAGES with high priority
-	const staticPages = [
+	const staticPages: readonly SitemapEntry[] = [
 		{
 			url: `${baseUrl}/`,
 			lastModified: currentDate,
@@ -52,39 +53,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			priority: 1.0,
 		},
 		{
-			url: `${baseUrl}/modules`,
+			url: `${baseUrl}/chapters`,
 			lastModified: currentDate,
 			changeFrequency: 'daily' as const,
 			priority: 0.9,
 			alternates: {
 				languages: {
-					en: `${baseUrl}/en/modules`,
-					ru: `${baseUrl}/ru/modules`,
+					en: `${baseUrl}/en/chapters`,
+					ru: `${baseUrl}/ru/chapters`,
 				},
 			},
 		},
 		{
-			url: `${baseUrl}/en/modules`,
+			url: `${baseUrl}/en/chapters`,
 			lastModified: currentDate,
 			changeFrequency: 'daily' as const,
 			priority: 0.9,
 		},
 		{
-			url: `${baseUrl}/ru/modules`,
+			url: `${baseUrl}/ru/chapters`,
 			lastModified: currentDate,
 			changeFrequency: 'daily' as const,
 			priority: 0.9,
 		},
-	];
+	] as const;
 
 	sitemapEntries.push(...staticPages);
 
 	try {
-		// Get ONLY published modules (public content)
-		const modules = await db.module.findMany({
+		// Get ONLY published chapters
+		const chapters = await db.chapter.findMany({
 			where: {
 				isPublished: true,
-				// Only include modules that are meant to be public
 			},
 			select: {
 				id: true,
@@ -93,20 +93,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				createdAt: true,
 			},
 			orderBy: { updatedAt: 'desc' },
-			take: 1000, // Limit for performance
+			take: 1000,
 		});
 
-		// Add module pages (PUBLIC only)
-		modules.forEach((module) => {
+		// Add chapter pages (PUBLIC only)
+		chapters.forEach((chapter) => {
 			sitemapEntries.push({
-				url: `${baseUrl}/modules/${module.slug}`,
-				lastModified: module.updatedAt,
+				url: `${baseUrl}/chapters/${chapter.slug}`,
+				lastModified: chapter.updatedAt,
 				changeFrequency: 'weekly',
 				priority: 0.8,
 				alternates: {
 					languages: {
-						en: `${baseUrl}/en/modules/${module.slug}`,
-						ru: `${baseUrl}/ru/modules/${module.slug}`,
+						en: `${baseUrl}/en/chapters/${chapter.slug}`,
+						ru: `${baseUrl}/ru/chapters/${chapter.slug}`,
 					},
 				},
 			});
@@ -114,14 +114,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			// Add localized versions
 			sitemapEntries.push(
 				{
-					url: `${baseUrl}/en/modules/${module.slug}`,
-					lastModified: module.updatedAt,
+					url: `${baseUrl}/en/chapters/${chapter.slug}`,
+					lastModified: chapter.updatedAt,
 					changeFrequency: 'weekly',
 					priority: 0.8,
 				},
 				{
-					url: `${baseUrl}/ru/modules/${module.slug}`,
-					lastModified: module.updatedAt,
+					url: `${baseUrl}/ru/chapters/${chapter.slug}`,
+					lastModified: chapter.updatedAt,
 					changeFrequency: 'weekly',
 					priority: 0.8,
 				},
@@ -132,13 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		const topics = await db.topic.findMany({
 			where: {
 				isPublished: true,
-				isFree: true, // Only free/public topics in sitemap
 			},
 			select: {
 				id: true,
 				slug: true,
 				updatedAt: true,
-				module: {
+				chapter: {
 					select: {
 						slug: true,
 						isPublished: true,
@@ -146,12 +145,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				},
 			},
 			orderBy: { updatedAt: 'desc' },
-			take: 2000, // Limit for performance
+			take: 2000,
 		});
 
 		// Add topic pages (PUBLIC only)
 		topics.forEach((topic) => {
-			if (topic.module.isPublished) {
+			if (topic.chapter?.isPublished) {
 				sitemapEntries.push({
 					url: `${baseUrl}/topic/${topic.slug}`,
 					lastModified: topic.updatedAt,
@@ -187,14 +186,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		const categories = await db.category.findMany({
 			where: {
 				isActive: true,
-				// Only public categories
 			},
 			select: {
 				id: true,
 				slug: true,
 				updatedAt: true,
 			},
-			take: 100, // Reasonable limit
+			take: 100,
 		});
 
 		// Add category pages (PUBLIC only)
@@ -216,14 +214,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		console.error('Error generating sitemap:', error);
 
 		// Fallback static sitemap if database fails
-		const fallbackPages = [
+		const fallbackPages: readonly SitemapEntry[] = [
 			{
-				url: `${baseUrl}/modules`,
+				url: `${baseUrl}/chapters`,
 				lastModified: currentDate,
 				changeFrequency: 'daily' as const,
 				priority: 0.9,
 			},
-		];
+		] as const;
 
 		sitemapEntries.push(...fallbackPages);
 	}

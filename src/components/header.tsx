@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, User, LogOut, Settings, Star } from 'lucide-react';
+import { User, LogOut, Settings, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useAuth, useSignOut } from '@/lib/auth/hooks';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -23,7 +22,6 @@ import Link from 'next/link';
 
 const Header = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [searchQuery, setSearchQuery] = useState('');
 
 	const t = useTranslations('common');
 	const tAuth = useTranslations('auth');
@@ -32,12 +30,6 @@ const Header = () => {
 
 	const handleLogout = () => {
 		signOutMutation.mutate();
-	};
-
-	const handleSearch = (e: React.FormEvent) => {
-		e.preventDefault();
-		// Implement search functionality
-		console.log('Search:', searchQuery);
 	};
 
 	return (
@@ -58,21 +50,6 @@ const Header = () => {
 									Dojo
 								</span>
 							</Link>
-						</div>
-
-						{/* Search */}
-						<div className='mx-8 max-w-lg flex-1'>
-							<div className='relative'>
-								<Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
-								<Input
-									type='text'
-									placeholder={t('search')}
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
-									className='pl-10'
-								/>
-							</div>
 						</div>
 
 						{/* Right side */}
