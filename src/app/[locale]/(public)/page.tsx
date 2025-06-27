@@ -10,26 +10,26 @@ import { generateStructuredData } from '@/lib/seo/structured-data';
 import { Difficulty } from '@prisma/client';
 
 interface HomePageProps {
-	params: { locale: string };
-	searchParams?: {
+	params: Promise<{ locale: string }>; // ✅ Changed to Promise
+	searchParams?: Promise<{
 		tab?: string;
 		category?: string;
 		difficulty?: Difficulty;
 		search?: string;
 		page?: string;
-	};
+	}>; // ✅ Also Promise for consistency
 }
 
 export async function generateMetadata({
 	params,
 }: Pick<HomePageProps, 'params'>): Promise<Metadata> {
-	const { locale } = params;
+	const { locale } = await params; // ✅ Now awaiting params
 
 	return await generateI18nSEOMetadata(i18nSEOConfigs.home, locale);
 }
 
 const HomePage = async ({ params, searchParams }: HomePageProps) => {
-	const { locale } = params;
+	const { locale } = await params; // ✅ Now awaiting params
 	setRequestLocale(locale);
 
 	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://godojo.dev';
@@ -67,7 +67,10 @@ const HomePage = async ({ params, searchParams }: HomePageProps) => {
 				}}
 			/>
 
-			<ChaptersHomeWrapper params={params} searchParams={searchParams} />
+			<ChaptersHomeWrapper 
+				params={params} 
+				searchParams={searchParams} 
+			/>
 
 			<div className='sr-only'>
 				<h1>Learn Go Programming - Complete Backend Development Course</h1>
